@@ -1,0 +1,47 @@
+package com.twodevsstudio.simplejsonconfig.api;
+
+import com.twodevsstudio.simplejsonconfig.def.Serializer;
+import lombok.Getter;
+
+import java.io.File;
+import java.lang.reflect.Field;
+
+@Getter
+public abstract class Config {
+    
+    protected File configFile;
+    
+    protected Config() {
+    
+    }
+    
+    /**
+     * You can perform a dynamic reload for your configuration to apply
+     * changes performed manually inside configuration file
+     */
+    public void reload() {
+        Config newConfig = (Config) Serializer.getInst().loadConfig(getClass(), this.configFile);
+        assert newConfig != null;
+        for (Field newField : newConfig.getClass().getDeclaredFields()) {
+            newField.setAccessible(true);
+            if (newField.getName().equals("configFile")) continue;
+            try {
+                newField.set(this, newField.get(newConfig));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    /**
+     * Use this method to get the instance of configuration that applies to parameterized class
+     *
+     * @param configClass Specify a class from which you want to get a configuration
+     * @param <T>         The type of your configuration, it's type of parameterized class
+     * @return Instance of the configuration of specified type (no need for cast to concrete types)
+     */
+    public static <T extends Config> T getConfig(Class<T> configClass) {
+        return ConfigContainer.getConfiguration(configClass);
+    }
+    
+}
