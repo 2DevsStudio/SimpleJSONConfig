@@ -85,11 +85,12 @@
             <version>1.18.0</version>
             <scope>provided</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.reflections/reflections -->
         <dependency>
-            <groupId>com.dorkbox</groupId>
-            <artifactId>Annotations</artifactId>
-            <version>2.14</version>
-            <scope>compile</scope>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.10</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

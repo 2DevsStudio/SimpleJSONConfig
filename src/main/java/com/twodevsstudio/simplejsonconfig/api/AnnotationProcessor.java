@@ -5,25 +5,26 @@ import com.twodevsstudio.simplejsonconfig.exceptions.AnnotationProcessException;
 import com.twodevsstudio.simplejsonconfig.interfaces.Autowired;
 import com.twodevsstudio.simplejsonconfig.interfaces.Configuration;
 import com.twodevsstudio.simplejsonconfig.utils.CustomLogger;
-import dorkbox.annotation.AnnotationDefaults;
-import dorkbox.annotation.AnnotationDetector;
 import lombok.SneakyThrows;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import org.reflections.Reflections;
+import org.reflections.scanners.FieldAnnotationsScanner;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.scanners.TypeAnnotationsScanner;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.annotation.ElementType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.List;
+import java.util.Set;
 
 public class AnnotationProcessor {
     
     private Plugin instance;
     
-    //private Reflections reflections;
+    private Reflections reflections;
     
     public static AnnotationProcessor INSTANCE;
     
@@ -40,14 +41,15 @@ public class AnnotationProcessor {
     
     private AnnotationProcessor(@NotNull Plugin plugin) {
         this.instance = plugin;
-        //this.reflections = new Reflections(instance.getClass().getPackage().getName());
+        this.reflections = new Reflections(instance.getClass().getPackage().getName()
+                , new TypeAnnotationsScanner()
+                , new FieldAnnotationsScanner()
+                , new SubTypesScanner());
     }
     
-    @SneakyThrows
     private void processConfiguration() {
-        
-        //Set<Class<?>> configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
-        List<Class<?>> configurationClasses = AnnotationDetector.scanClassPath(instance.getClass().getPackage().getName()).forAnnotations(Configuration.class).collect(AnnotationDefaults.getType);
+    
+        Set<Class<?>> configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
         
         for (Class<?> annotadedClass : configurationClasses) {
             
@@ -55,7 +57,11 @@ public class AnnotationProcessor {
             String configName = configurationAnnotation.name();
             
             if (!isConfig(annotadedClass)) {
-                CustomLogger.warning("Configuration " + configName + " could not be loaded. Class annotated as @Configuration does not extends " + Config.class.getName());
+                CustomLogger.warning("Configuration "
+                        + configName
+                        + " could not be loaded. Class annotated as @Configuration does not extends "
+                        + Config.class.getName());
+    
                 continue;
             }
             
@@ -83,9 +89,8 @@ public class AnnotationProcessor {
     
     @SneakyThrows
     private void processAutowired() {
-        List<Field> fields = AnnotationDetector.scanClassPath(instance.getClass().getPackage().getName()).forAnnotations(Autowired.class).on(ElementType.METHOD).collect(AnnotationDefaults.getField);
     
-        for (Field field : fields) {
+        for (Field field : reflections.getFieldsAnnotatedWith(Autowired.class)) {
         
             field.setAccessible(true);
         
@@ -104,10 +109,13 @@ public class AnnotationProcessor {
     }
     
     private void initConfig(@NotNull Config config, @NotNull File configFile) {
-        
+    
+        config.configFile = configFile;
+    
         if (!configFile.exists()) {
-            
+        
             try {
+                configFile.mkdirs();
                 configFile.createNewFile();
                 Serializer.getInst().saveConfig(config, configFile);
             } catch (IOException ex) {
@@ -126,7 +134,6 @@ public class AnnotationProcessor {
             
         }
         
-        config.configFile = configFile;
         ConfigContainer.SINGLETONS.put(config.getClass(), config);
     }
     
