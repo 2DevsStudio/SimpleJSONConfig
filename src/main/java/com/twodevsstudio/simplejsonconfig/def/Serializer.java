@@ -123,7 +123,7 @@ public class Serializer {
      * @return Deserialized object of parameterized type or null when any exception occurs
      */
     @Nullable
-    public <T> Object loadConfig(Class<T> clazz, @NotNull File file) {
+    public <T> T loadConfig(Class<T> clazz, @NotNull File file) {
         T deserializedObject;
         try {
             deserializedObject = gson.fromJson(new String(Files.readAllBytes(file.toPath())), clazz);

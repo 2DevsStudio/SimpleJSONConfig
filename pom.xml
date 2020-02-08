@@ -77,7 +77,7 @@
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
             <version>16.0.3</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -85,11 +85,11 @@
             <version>1.18.0</version>
             <scope>provided</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.reflections/reflections -->
         <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.9.10</version>
+            <groupId>com.dorkbox</groupId>
+            <artifactId>Annotations</artifactId>
+            <version>2.14</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

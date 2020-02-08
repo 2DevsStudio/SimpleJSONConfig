@@ -5,23 +5,25 @@ import com.twodevsstudio.simplejsonconfig.exceptions.AnnotationProcessException;
 import com.twodevsstudio.simplejsonconfig.interfaces.Autowired;
 import com.twodevsstudio.simplejsonconfig.interfaces.Configuration;
 import com.twodevsstudio.simplejsonconfig.utils.CustomLogger;
+import dorkbox.annotation.AnnotationDefaults;
+import dorkbox.annotation.AnnotationDetector;
 import lombok.SneakyThrows;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
-import org.reflections.Reflections;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.ElementType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Set;
+import java.util.List;
 
 public class AnnotationProcessor {
     
     private Plugin instance;
     
-    private Reflections reflections;
+    //private Reflections reflections;
     
     public static AnnotationProcessor INSTANCE;
     
@@ -38,12 +40,14 @@ public class AnnotationProcessor {
     
     private AnnotationProcessor(@NotNull Plugin plugin) {
         this.instance = plugin;
-        this.reflections = new Reflections(instance.getClass().getPackage().getName());
+        //this.reflections = new Reflections(instance.getClass().getPackage().getName());
     }
     
+    @SneakyThrows
     private void processConfiguration() {
         
-        Set<Class<?>> configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
+        //Set<Class<?>> configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
+        List<Class<?>> configurationClasses = AnnotationDetector.scanClassPath(instance.getClass().getPackage().getName()).forAnnotations(Configuration.class).collect(AnnotationDefaults.getType);
         
         for (Class<?> annotadedClass : configurationClasses) {
             
@@ -79,17 +83,18 @@ public class AnnotationProcessor {
     
     @SneakyThrows
     private void processAutowired() {
+        List<Field> fields = AnnotationDetector.scanClassPath(instance.getClass().getPackage().getName()).forAnnotations(Autowired.class).on(ElementType.METHOD).collect(AnnotationDefaults.getField);
+    
+        for (Field field : fields) {
         
-        for (Field field : reflections.getFieldsAnnotatedWith(Autowired.class)) {
-            
             field.setAccessible(true);
-            
+        
             Class<?> type = field.getType();
-            
+        
             if (type.getSuperclass() == Config.class && Modifier.isStatic(field.getModifiers())) {
                 field.set(null, Config.getConfig((Class<? extends Config>) type));
             }
-            
+        
         }
         
     }
