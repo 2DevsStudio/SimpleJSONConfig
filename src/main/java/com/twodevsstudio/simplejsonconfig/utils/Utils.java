@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class Utils {
+public class Utils {
     
     @NotNull
     public static String colored(@NotNull String msg) {

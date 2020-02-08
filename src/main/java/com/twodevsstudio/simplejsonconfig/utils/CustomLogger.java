@@ -5,11 +5,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class CustomLogger {
     
-    private static final String LOG_PREFIX = "&7[&aSimpleJSONConfig&7] &a»» &7";
+    public static String LOG_PREFIX = "&7[&aSimpleJSONConfig&7] &a»» &7";
     
-    private static final String WARNING_PREFIX = "&7[&eWARNING&7] &a»» &e";
+    public static String WARNING_PREFIX = "&7[&eWARNING&7] &a»» &e";
     
-    private static final String ERROR_PREFIX = "&7[&4ERROR&7] &c»» &4";
+    public static String ERROR_PREFIX = "&7[&4ERROR&7] &c»» &4";
     
     public static void log(@NotNull String message) {
         Bukkit.getConsoleSender().sendMessage(Utils.colored(LOG_PREFIX + message));
