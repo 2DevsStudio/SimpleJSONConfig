@@ -12,6 +12,8 @@ import java.util.Set;
 @Getter
 public abstract class Config {
     
+    private static final Serializer SERIALIZER = Serializer.getInst();
+    
     protected File configFile;
     
     protected Config() {
@@ -34,6 +36,10 @@ public abstract class Config {
                 e.printStackTrace();
             }
         }
+    }
+    
+    public void save() {
+        SERIALIZER.saveConfig(this, configFile);
     }
     
     /**
