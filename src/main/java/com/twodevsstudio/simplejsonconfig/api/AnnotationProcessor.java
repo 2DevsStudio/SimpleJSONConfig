@@ -29,26 +29,29 @@ public class AnnotationProcessor {
     public static AnnotationProcessor INSTANCE;
     
     public static void processAnnotations(@NotNull Plugin plugin) {
-        
-        if (INSTANCE != null) throw new AnnotationProcessException();
-        
+    
+        if (INSTANCE != null) {
+            throw new AnnotationProcessException();
+        }
+    
         INSTANCE = new AnnotationProcessor(plugin);
-        
+    
         INSTANCE.processConfiguration();
         INSTANCE.processAutowired();
-        
+    
     }
     
     private AnnotationProcessor(@NotNull Plugin plugin) {
+    
         this.instance = plugin;
-        this.reflections = new Reflections(instance.getClass().getPackage().getName()
-                , new TypeAnnotationsScanner()
-                , new FieldAnnotationsScanner()
-                , new SubTypesScanner());
+        this.reflections = new Reflections(instance.getClass().getPackage().getName(), new TypeAnnotationsScanner(),
+                new FieldAnnotationsScanner(), new SubTypesScanner()
+        );
     }
     
+    @SneakyThrows
     private void processConfiguration() {
-    
+        
         Set<Class<?>> configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
         
         for (Class<?> annotadedClass : configurationClasses) {
@@ -57,11 +60,11 @@ public class AnnotationProcessor {
             String configName = configurationAnnotation.name();
             
             if (!isConfig(annotadedClass)) {
-                CustomLogger.warning("Configuration "
-                        + configName
-                        + " could not be loaded. Class annotated as @Configuration does not extends "
-                        + Config.class.getName());
-    
+                CustomLogger.warning("Configuration " +
+                                     configName +
+                                     " could not be loaded. Class annotated as @Configuration does not extends " +
+                                     Config.class.getName());
+                
                 continue;
             }
             
@@ -81,7 +84,13 @@ public class AnnotationProcessor {
             
             String fileName = configName.endsWith(".json") ? configName : configName + ".json";
             
-            initConfig(config, new File(instance.getDataFolder() + "/configuration", fileName));
+            File configFile = new File(instance.getDataFolder() + "/configuration", fileName);
+            
+            Field field = configClass.getDeclaredField("configFile");
+            field.setAccessible(true);
+            field.set(config, configFile);
+            
+            initConfig(config, configFile);
             
         }
         
@@ -105,6 +114,7 @@ public class AnnotationProcessor {
     }
     
     public boolean isConfig(@NotNull Class<?> clazz) {
+    
         return clazz.getSuperclass() == Config.class;
     }
     

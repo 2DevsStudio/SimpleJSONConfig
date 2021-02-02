@@ -23,7 +23,7 @@ public class DefaultGsonBuilder {
     public DefaultGsonBuilder() {
         this.gsonBuilder = new GsonBuilder().setPrettyPrinting()
                 .disableHtmlEscaping()
-                .excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
+                .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC)
                 .serializeNulls()
                 .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackAdapter())
                 .registerTypeAdapter(World.class, new WorldAdapter())

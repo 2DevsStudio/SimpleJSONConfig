@@ -14,7 +14,7 @@ public abstract class Config {
     
     private static final Serializer SERIALIZER = Serializer.getInst();
     
-    protected File configFile;
+    protected transient File configFile;
     
     protected Config() {
     
