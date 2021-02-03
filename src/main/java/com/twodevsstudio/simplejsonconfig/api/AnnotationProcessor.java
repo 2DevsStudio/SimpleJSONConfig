@@ -85,8 +85,8 @@ public class AnnotationProcessor {
             String fileName = configName.endsWith(".json") ? configName : configName + ".json";
             
             File configFile = new File(instance.getDataFolder() + "/configuration", fileName);
-            
-            Field field = configClass.getDeclaredField("configFile");
+    
+            Field field = configClass.getSuperclass().getDeclaredField("configFile");
             field.setAccessible(true);
             field.set(config, configFile);
             
