@@ -3,27 +3,26 @@
 
 Maven:
 
-```
-	  <repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
+```xml
+   <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+   </repository>
     
    <dependency>
-	    <groupId>com.github.slighterr12</groupId>
-	    <artifactId>SimpleJSONConfig</artifactId>
-	    <version>32e62403f6</version>
-	 </dependency>
+	<groupId>com.github.slighterr12</groupId>
+	<artifactId>SimpleJSONConfig</artifactId>
+	<version>32e62403f6</version>
+   </dependency>
 ```
 
 Gradle:
 
 
-```
-		repositories {
-			...
-			maven { url 'https://jitpack.io' }
-		}
+```xml
+	repositories {
+		maven { url 'https://jitpack.io' }
+	}
     
 	dependencies {
 	        implementation 'com.github.slighterr12:SimpleJSONConfig:32e62403f6'
