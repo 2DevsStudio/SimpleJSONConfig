@@ -37,12 +37,13 @@ Usage:
 ```java
 
 @Getter # If you have Lombok, there you can just use annotation called @Getter <lombok.Getter> instead of handmade Getters, much faster
-@Configuration( name = "general-config.json" )  # there you specify name of file, you don't have to remember about extension
+@Configuration( name = "general-config.json" )  # there you specify name of file, you don not have to remember about extension
 public class GeneralConfig extends Config { # remember to extends Config!
     
     private final String test = "There is default value for test";
     
-    # you can store how much fields do you want, objects, maps, lists, itemstacks, worlds, whatever you want, it will be serialized and easily deserialized.
+    # you can store how much fields do you want, 
+    # objects, maps, lists, itemstacks, worlds, whatever you want, it will be serialized and easily deserialized.
 }
 ```
 
@@ -62,9 +63,7 @@ public class GeneralConfig extends Config { # remember to extends Config!
 
 Config.getConfig(<ClassName>.class);
 
-or
-
-by using annotation @Autowired
+# or by using annotation @Autowired
 
 @AutoWired
 private static ConfigClass config; # remember about static
