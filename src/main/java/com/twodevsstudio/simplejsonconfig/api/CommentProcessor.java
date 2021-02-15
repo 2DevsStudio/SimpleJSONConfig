@@ -63,15 +63,14 @@ public class CommentProcessor {
                 int commentStartIndex = line.lastIndexOf(COMMENT_PREFIX);
                 int endStringIndex = line.lastIndexOf("\"");
     
-                if (commentStartIndex <= endStringIndex) {
+                if (commentStartIndex > endStringIndex) {
+        
+                    String comment = line.substring(commentStartIndex);
+        
+                    String lineWithoutComment = line.replace(comment, "");
+                    linesWithoutComments.add(lineWithoutComment);
                     continue;
                 }
-    
-                String comment = line.substring(commentStartIndex);
-    
-                String lineWithoutComment = line.replace(comment, "");
-                linesWithoutComments.add(lineWithoutComment);
-                continue;
             }
             
             linesWithoutComments.add(line);
