@@ -59,11 +59,16 @@ public class CommentProcessor {
         for (String line : lines) {
             
             if (line.contains(COMMENT_PREFIX)) {
-                
-                int commentStartIndex = line.indexOf(COMMENT_PREFIX);
-                
+    
+                int commentStartIndex = line.lastIndexOf(COMMENT_PREFIX);
+                int endStringIndex = line.lastIndexOf("\"");
+    
+                if (commentStartIndex <= endStringIndex) {
+                    continue;
+                }
+    
                 String comment = line.substring(commentStartIndex);
-                
+    
                 String lineWithoutComment = line.replace(comment, "");
                 linesWithoutComments.add(lineWithoutComment);
                 continue;
