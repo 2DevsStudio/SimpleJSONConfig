@@ -8,16 +8,17 @@ import java.lang.annotation.*;
  * and make it able to be processes by AnnotationProcessor
  */
 @Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Inherited
+@Retention( RetentionPolicy.RUNTIME )
+@Documented
 public @interface Configuration {
     
     /**
      * You have to specify your configuration name.
      *
      * @return name of the configuration
+     *
      * @apiNote It's also the name of your configuration file
      */
-    String name();
+    String value();
     
 }

@@ -3,6 +3,7 @@ package com.twodevsstudio.simplejsonconfig.api;
 import com.twodevsstudio.simplejsonconfig.def.Serializer;
 import com.twodevsstudio.simplejsonconfig.exceptions.AnnotationProcessException;
 import com.twodevsstudio.simplejsonconfig.interfaces.Autowired;
+import com.twodevsstudio.simplejsonconfig.interfaces.Comment;
 import com.twodevsstudio.simplejsonconfig.interfaces.Configuration;
 import com.twodevsstudio.simplejsonconfig.utils.CustomLogger;
 import lombok.SneakyThrows;
@@ -18,6 +19,8 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class AnnotationProcessor {
@@ -55,9 +58,9 @@ public class AnnotationProcessor {
         Set<Class<?>> configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
         
         for (Class<?> annotadedClass : configurationClasses) {
-            
+    
             Configuration configurationAnnotation = annotadedClass.getAnnotation(Configuration.class);
-            String configName = configurationAnnotation.name();
+            String configName = configurationAnnotation.value();
             
             if (!isConfig(annotadedClass)) {
                 CustomLogger.warning("Configuration " +
@@ -141,10 +144,27 @@ public class AnnotationProcessor {
                 CustomLogger.warning(config.getClass().getName() + ": Config file is corrupted");
                 return;
             }
-            
-        }
         
+        }
+    
         ConfigContainer.SINGLETONS.put(config.getClass(), config);
     }
     
+    
+    public static Map<String, Comment> getFieldsComments(Object object) {
+        
+        Map<String, Comment> comments = new HashMap<>();
+        
+        for (Field declaredField : object.getClass().getDeclaredFields()) {
+            declaredField.setAccessible(true);
+            if (!declaredField.isAnnotationPresent(Comment.class)) {
+                continue;
+            }
+            
+            Comment comment = declaredField.getAnnotation(Comment.class);
+            comments.put(declaredField.getName(), comment);
+        }
+        
+        return comments;
+    }
 }
