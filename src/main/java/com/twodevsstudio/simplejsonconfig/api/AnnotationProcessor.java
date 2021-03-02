@@ -12,6 +12,8 @@ import org.reflections.Reflections;
 import org.reflections.scanners.FieldAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,15 +28,23 @@ import static java.lang.reflect.Modifier.isStatic;
 public class AnnotationProcessor {
     
     public void processAnnotations(@NotNull Plugin plugin, File configsDirectory) {
-        
-        Reflections reflections = new Reflections(plugin.getClass().getPackage().getName(),
-                new TypeAnnotationsScanner(), new FieldAnnotationsScanner(), new SubTypesScanner()
-        );
-        
-        
+    
+        ConfigurationBuilder builder = new ConfigurationBuilder();
+    
+        builder.addUrls(
+                ClasspathHelper.forPackage(plugin.getClass().getPackage().getName(), plugin.getClass().getClassLoader(),
+                        ClassLoader.getSystemClassLoader(), ClasspathHelper.contextClassLoader(),
+                        ClasspathHelper.staticClassLoader()
+                ));
+    
+        builder.addScanners(new TypeAnnotationsScanner(), new FieldAnnotationsScanner(), new SubTypesScanner());
+    
+        Reflections reflections = new Reflections(builder);
+    
+    
         processConfiguration(configsDirectory, reflections);
         processAutowired(reflections);
-        
+    
     }
     
     public AnnotationProcessor() {
