@@ -25,8 +25,9 @@ public abstract class Config {
      * changes performed manually inside configuration file
      */
     public void reload() {
+    
         Config newConfig = Serializer.getInst().loadConfig(getClass(), this.configFile);
-        assert newConfig != null;
+    
         for (Field newField : newConfig.getClass().getDeclaredFields()) {
             newField.setAccessible(true);
             if (newField.getName().equals("configFile")) continue;

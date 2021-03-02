@@ -1,7 +1,6 @@
 package com.twodevsstudio.simplejsonconfig.api;
 
 import com.twodevsstudio.simplejsonconfig.def.Serializer;
-import com.twodevsstudio.simplejsonconfig.exceptions.AnnotationProcessException;
 import com.twodevsstudio.simplejsonconfig.interfaces.Autowired;
 import com.twodevsstudio.simplejsonconfig.interfaces.Comment;
 import com.twodevsstudio.simplejsonconfig.interfaces.Configuration;
@@ -18,47 +17,37 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static java.lang.reflect.Modifier.isStatic;
+
 public class AnnotationProcessor {
     
-    private Plugin instance;
-    
-    private Reflections reflections;
-    
-    public static AnnotationProcessor INSTANCE;
-    
-    public static void processAnnotations(@NotNull Plugin plugin) {
-    
-        if (INSTANCE != null) {
-            throw new AnnotationProcessException();
-        }
-    
-        INSTANCE = new AnnotationProcessor(plugin);
-    
-        INSTANCE.processConfiguration();
-        INSTANCE.processAutowired();
-    
+    public void processAnnotations(@NotNull Plugin plugin, File configsDirectory) {
+        
+        Reflections reflections = new Reflections(plugin.getClass().getPackage().getName(),
+                new TypeAnnotationsScanner(), new FieldAnnotationsScanner(), new SubTypesScanner()
+        );
+        
+        
+        processConfiguration(configsDirectory, reflections);
+        processAutowired(reflections);
+        
     }
     
-    private AnnotationProcessor(@NotNull Plugin plugin) {
-    
-        this.instance = plugin;
-        this.reflections = new Reflections(instance.getClass().getPackage().getName(), new TypeAnnotationsScanner(),
-                new FieldAnnotationsScanner(), new SubTypesScanner()
-        );
+    public AnnotationProcessor() {
+        
     }
     
     @SneakyThrows
-    private void processConfiguration() {
+    public void processConfiguration(File configsDirectory, Reflections reflections) {
         
         Set<Class<?>> configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
         
         for (Class<?> annotadedClass : configurationClasses) {
-    
+            
             Configuration configurationAnnotation = annotadedClass.getAnnotation(Configuration.class);
             String configName = configurationAnnotation.value();
             
@@ -87,8 +76,8 @@ public class AnnotationProcessor {
             
             String fileName = configName.endsWith(".json") ? configName : configName + ".json";
             
-            File configFile = new File(instance.getDataFolder() + "/configuration", fileName);
-    
+            File configFile = new File(configsDirectory, fileName);
+            
             Field field = configClass.getSuperclass().getDeclaredField("configFile");
             field.setAccessible(true);
             field.set(config, configFile);
@@ -100,18 +89,31 @@ public class AnnotationProcessor {
     }
     
     @SneakyThrows
-    private void processAutowired() {
+    public void processAutowired(Plugin plugin) {
+        
+        Reflections reflections = new Reflections(plugin.getClass().getPackage().getName(),
+                new TypeAnnotationsScanner(), new FieldAnnotationsScanner(), new SubTypesScanner()
+        );
+        
+        processAutowired(reflections);
+        
+    }
     
+    @SneakyThrows
+    public void processAutowired(Reflections reflections) {
+        
         for (Field field : reflections.getFieldsAnnotatedWith(Autowired.class)) {
-        
+            
             field.setAccessible(true);
-        
+            
             Class<?> type = field.getType();
-        
-            if (type.getSuperclass() == Config.class && Modifier.isStatic(field.getModifiers())) {
-                field.set(null, Config.getConfig((Class<? extends Config>) type));
+            
+            if (isConfig(type) && isStatic(field.getModifiers()) && field.get(null) == null) {
+                
+                Config config = Config.getConfig((Class<? extends Config>) type);
+                field.set(null, config);
             }
-        
+            
         }
         
     }
