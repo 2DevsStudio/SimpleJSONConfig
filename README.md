@@ -12,7 +12,7 @@ Maven:
    <dependency>
 	<groupId>com.github.slighterr12</groupId>
 	<artifactId>SimpleJSONConfig</artifactId>
-	<version>32e62403f6</version>
+	<version>732225f</version>
    </dependency>
 ```
 
@@ -37,10 +37,10 @@ Usage:
 ```java
 
 @Getter # If you have Lombok, there you can just use annotation called @Getter <lombok.Getter> instead of handmade Getters, much faster
-@Configuration( name = "general-config.json" )  # there you specify name of file, you don not have to remember about extension
-public class GeneralConfig extends Config { # remember to extends Config!
+@Configuration( "general-config.json" )  # there you specify name of file, you don not have to remember about extension
+public class GeneralConfig extends Config { # remember to extend Config!
     
-    private final String test = "There is default value for test";
+    private String test = "There is default value for test";
     
     # you can store how much fields do you want, 
     # objects, maps, lists, itemstacks, worlds, whatever you want, it will be serialized and easily deserialized.
@@ -65,7 +65,7 @@ Config.getConfig(<ClassName>.class);
 
 # or by using annotation @Autowired
 
-@AutoWired
+@Autowired
 private static ConfigClass config; # remember about static
 
 ```
