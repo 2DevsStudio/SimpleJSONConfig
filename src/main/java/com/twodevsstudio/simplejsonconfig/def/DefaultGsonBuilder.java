@@ -29,8 +29,8 @@ public class DefaultGsonBuilder {
                 .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC)
                 .serializeNulls()
                 .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackAdapter())
+                .registerTypeHierarchyAdapter(World.class, new WorldAdapter())
                 .registerTypeHierarchyAdapter(Reference.class, new ReferenceAdapter())
-                .registerTypeAdapter(World.class, new WorldAdapter())
                 .registerTypeAdapter(BlockState.class, new InterfaceAdapter())
                 .addDeserializationExclusionStrategy(new SuperclassExclusionStrategy())
                 .addSerializationExclusionStrategy(new SuperclassExclusionStrategy());
