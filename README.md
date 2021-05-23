@@ -12,7 +12,7 @@ Maven:
    <dependency>
 	<groupId>com.github.slighterr12</groupId>
 	<artifactId>SimpleJSONConfig</artifactId>
-	<version>732225f</version>
+	<version>a5c8083</version>
    </dependency>
 ```
 
