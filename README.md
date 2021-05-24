@@ -12,7 +12,7 @@ Maven:
    <dependency>
 	<groupId>com.github.slighterr12</groupId>
 	<artifactId>SimpleJSONConfig</artifactId>
-	<version>a5c8083</version>
+	<version>2247ea5</version>
    </dependency>
 ```
 
@@ -25,7 +25,7 @@ Gradle:
 	}
     
 	dependencies {
-	        implementation 'com.github.slighterr12:SimpleJSONConfig:32e62403f6'
+	        implementation 'com.github.slighterr12:SimpleJSONConfig:2247ea5'
 	}
 ```
 
