@@ -18,8 +18,7 @@ public class ReferenceAdapter implements JsonSerializer, JsonDeserializer {
         Object ref = reference.get();
         if (ref instanceof World) {
             World world = (World) ref;
-            jsonObj.add("reference", context.serialize(world.getClass().getName()));
-            jsonObj.add("value", context.serialize(world, world.getClass()));
+            return context.serialize(world, world.getClass());
         } else {
             jsonObj.add("reference", context.serialize(ref.getClass().getName()));
             jsonObj.add("value", context.serialize(ref, ref.getClass()));
@@ -33,13 +32,13 @@ public class ReferenceAdapter implements JsonSerializer, JsonDeserializer {
             throws JsonParseException {
         
         JsonObject jsonObject = json.getAsJsonObject();
-        JsonElement reference = jsonObject.get("reference");
-        Class<?> aClass = Class.forName(reference.getAsString());
         Object value;
         
-        if (aClass.getName().equals(World.class.getName())) {
-            value = context.deserialize(jsonObject.get("value"), World.class);
+        if (!jsonObject.has("reference")) {
+            value = context.deserialize(jsonObject, World.class);
         } else {
+            JsonElement reference = jsonObject.get("reference");
+            Class<?> aClass = Class.forName(reference.getAsString());
             value = context.deserialize(jsonObject.get("value"), aClass);
         }
         
