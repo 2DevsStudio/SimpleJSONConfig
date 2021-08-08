@@ -28,23 +28,23 @@ import static java.lang.reflect.Modifier.isStatic;
 public class AnnotationProcessor {
     
     public void processAnnotations(@NotNull Plugin plugin, File configsDirectory) {
-    
+        
         ConfigurationBuilder builder = new ConfigurationBuilder();
-    
+        
         builder.addUrls(
                 ClasspathHelper.forPackage(plugin.getClass().getPackage().getName(), plugin.getClass().getClassLoader(),
                         ClassLoader.getSystemClassLoader(), ClasspathHelper.contextClassLoader(),
                         ClasspathHelper.staticClassLoader()
                 ));
-    
+        
         builder.addScanners(new TypeAnnotationsScanner(), new FieldAnnotationsScanner(), new SubTypesScanner());
-    
+        
         Reflections reflections = new Reflections(builder);
-    
-    
+        
+        
         processConfiguration(configsDirectory, reflections);
         processAutowired(reflections);
-    
+        
     }
     
     public AnnotationProcessor() {
@@ -79,8 +79,9 @@ public class AnnotationProcessor {
                 constructor = configClass.getConstructor();
                 constructor.setAccessible(true);
                 config = constructor.newInstance();
-            } catch (ReflectiveOperationException ignored) {
-                CustomLogger.warning(configClass.getName() + ": Cannot find default constructor");
+            } catch (ReflectiveOperationException exception) {
+                CustomLogger.warning(configClass.getName() + ": " + exception.getMessage());
+                exception.printStackTrace();
                 continue;
             }
             
@@ -129,16 +130,16 @@ public class AnnotationProcessor {
     }
     
     public boolean isConfig(@NotNull Class<?> clazz) {
-    
+        
         return clazz.getSuperclass() == Config.class;
     }
     
     private void initConfig(@NotNull Config config, @NotNull File configFile) {
-    
-        config.configFile = configFile;
-    
-        if (!configFile.exists()) {
         
+        config.configFile = configFile;
+        
+        if (!configFile.exists()) {
+            
             try {
                 configFile.mkdirs();
                 configFile.createNewFile();
@@ -156,9 +157,9 @@ public class AnnotationProcessor {
                 CustomLogger.warning(config.getClass().getName() + ": Config file is corrupted");
                 return;
             }
-        
+            
         }
-    
+        
         ConfigContainer.SINGLETONS.put(config.getClass(), config);
     }
     

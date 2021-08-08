@@ -33,7 +33,7 @@ public class Serializer {
      * business logic, and that method will be called after the deserialization process complete
      */
     private Serializer() {
-    
+        
         this.gson = new DefaultGsonBuilder().getGsonBuilder().create();
     }
     
@@ -44,14 +44,14 @@ public class Serializer {
      * @param file   File where serialized object will be stored
      */
     public void saveConfig(Object object, @NotNull File file) {
-    
+        
         try {
             if (file.createNewFile()) {
                 String json = gson.toJson(jsonParser.parse(gson.toJson(object)));
                 try (PrintWriter out = new PrintWriter(file)) {
                     out.println(json);
                 }
-    
+                
                 commentProcessor.includeComments(file, object);
             } else {
                 if (file.delete()) {
@@ -60,7 +60,7 @@ public class Serializer {
                         try (PrintWriter out = new PrintWriter(file)) {
                             out.println(json);
                         }
-    
+                        
                         commentProcessor.includeComments(file, object);
                     }
                     
@@ -83,11 +83,11 @@ public class Serializer {
      */
     @Nullable
     public <T> T loadConfig(Class<T> clazz, @NotNull File file) {
-    
+        
         T deserializedObject;
         try {
             file = commentProcessor.getFileWithoutComments(file);
-    
+            
             deserializedObject = gson.fromJson(new String(Files.readAllBytes(file.toPath())), clazz);
             if (deserializedObject.getClass().equals(clazz)) {
                 if (deserializedObject instanceof PostProcessable) {
@@ -108,7 +108,7 @@ public class Serializer {
      */
     @Contract( pure = true )
     public static Serializer getInst() {
-    
+        
         return Serializer.SingletonHelper.INSTANCE;
     }
     
