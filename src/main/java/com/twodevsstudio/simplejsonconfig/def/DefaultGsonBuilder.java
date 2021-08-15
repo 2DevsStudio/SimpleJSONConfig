@@ -1,5 +1,7 @@
 package com.twodevsstudio.simplejsonconfig.def;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.twodevsstudio.simplejsonconfig.def.adapters.InterfaceAdapter;
 import com.twodevsstudio.simplejsonconfig.def.adapters.ItemStackAdapter;
@@ -15,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.Reference;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 
 @Getter( onMethod_ = @NotNull )
 @Setter( onParam_ = @NotNull )
@@ -36,4 +39,32 @@ public class DefaultGsonBuilder {
                 .addSerializationExclusionStrategy(new SuperclassExclusionStrategy());
     }
     
+    public DefaultGsonBuilder registerTypeHierarchyAdapter(Class<?> baseType, Object typeAdapter) {
+        
+        gsonBuilder.registerTypeHierarchyAdapter(baseType, typeAdapter);
+        return this;
+    }
+    
+    public DefaultGsonBuilder registerTypeAdapter(Type type, Object typeAdapter) {
+        
+        gsonBuilder.registerTypeAdapter(type, typeAdapter);
+        return this;
+    }
+    
+    public DefaultGsonBuilder addDeserializationExclusionStrategy(ExclusionStrategy strategy) {
+        
+        gsonBuilder.addDeserializationExclusionStrategy(strategy);
+        return this;
+    }
+    
+    public DefaultGsonBuilder addSerializationExclusionStrategy(ExclusionStrategy strategy) {
+        
+        gsonBuilder.addSerializationExclusionStrategy(strategy);
+        return this;
+    }
+    
+    public Gson build() {
+        
+        return gsonBuilder.create();
+    }
 }
