@@ -1,6 +1,7 @@
 package com.twodevsstudio.simplejsonconfig.def.adapters;
 
 import com.google.gson.*;
+import com.twodevsstudio.simplejsonconfig.interfaces.PostProcessable;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
@@ -18,7 +19,13 @@ public class InterfaceAdapter implements JsonSerializer, JsonDeserializer {
         JsonPrimitive primitive = (JsonPrimitive) jsonObject.get(CLASSNAME);
         String className = primitive.getAsString();
         Class clazz = getObjectClass(className);
-        return jsonDeserializationContext.deserialize(jsonObject.get(DATA), clazz);
+        
+        Object deserializedObject = jsonDeserializationContext.deserialize(jsonObject.get(DATA), clazz);
+        if (deserializedObject instanceof PostProcessable){
+            ((PostProcessable) deserializedObject).gsonPostProcess();
+        }
+        
+        return deserializedObject;
     }
     
     public JsonElement serialize(@NotNull Object jsonElement, Type type, @NotNull JsonSerializationContext jsonSerializationContext) {
