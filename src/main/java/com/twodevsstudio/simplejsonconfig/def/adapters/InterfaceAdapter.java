@@ -15,10 +15,10 @@ public class InterfaceAdapter implements JsonSerializer, JsonDeserializer {
                               @NotNull JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
         
         JsonObject jsonObject = jsonElement.getAsJsonObject();
-        JsonPrimitive prim = (JsonPrimitive) jsonObject.get(CLASSNAME);
-        String className = prim.getAsString();
-        Class klass = getObjectClass(className);
-        return jsonDeserializationContext.deserialize(jsonObject.get(DATA), klass);
+        JsonPrimitive primitive = (JsonPrimitive) jsonObject.get(CLASSNAME);
+        String className = primitive.getAsString();
+        Class clazz = getObjectClass(className);
+        return jsonDeserializationContext.deserialize(jsonObject.get(DATA), clazz);
     }
     
     public JsonElement serialize(@NotNull Object jsonElement, Type type, @NotNull JsonSerializationContext jsonSerializationContext) {

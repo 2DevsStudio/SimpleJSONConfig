@@ -21,12 +21,16 @@ import java.util.Objects;
 
 public class ItemStackAdapter extends TypeAdapter<ItemStack> {
     
+    private final static String CLASS_KEY = "SERIAL-ADAPTER-CLASS-KEY";
     private static Type seriType = new TypeToken<Map<String, Object>>() {
     
     }.getType();
     
+    private Serializer serializer = Serializer.getInst();
+    
     @Override
     public void write(JsonWriter jsonWriter, ItemStack itemStack) throws IOException {
+        
         if (itemStack == null) {
             jsonWriter.nullValue();
             return;
@@ -36,6 +40,7 @@ public class ItemStackAdapter extends TypeAdapter<ItemStack> {
     
     @Override
     public ItemStack read(@NotNull JsonReader jsonReader) throws IOException {
+        
         if (jsonReader.peek() == JsonToken.NULL) {
             jsonReader.nextNull();
             return null;
@@ -44,20 +49,19 @@ public class ItemStackAdapter extends TypeAdapter<ItemStack> {
     }
     
     private String getRaw(@NotNull ItemStack item) {
+        
         Map<String, Object> serial = item.serialize();
         
         if (serial.get("meta") != null) {
             ItemMeta itemMeta = item.getItemMeta();
             
             Map<String, Object> originalMeta = itemMeta.serialize();
-            Map<String, Object> meta = new HashMap<>();
-            for (Map.Entry<String, Object> entry : originalMeta.entrySet())
-                meta.put(entry.getKey(), entry.getValue());
-            Object o;
+            Map<String, Object> meta = new HashMap<>(originalMeta);
+            
             for (Map.Entry<String, Object> entry : meta.entrySet()) {
-                o = entry.getValue();
-                if (o instanceof ConfigurationSerializable) {
-                    ConfigurationSerializable serializable = (ConfigurationSerializable) o;
+                Object object = entry.getValue();
+                if (object instanceof ConfigurationSerializable) {
+                    ConfigurationSerializable serializable = (ConfigurationSerializable) object;
                     Map<String, Object> serialized = recursiveSerialization(serializable);
                     meta.put(entry.getKey(), serialized);
                 }
@@ -65,17 +69,17 @@ public class ItemStackAdapter extends TypeAdapter<ItemStack> {
             serial.put("meta", meta);
         }
         
-        return Serializer.getInst().getGson().toJson(serial);
+        return serializer.getGson().toJson(serial);
     }
     
     @Nullable
     private ItemStack fromRaw(String raw) {
+        
         Map<String, Object> keys = Serializer.getInst().getGson().fromJson(raw, seriType);
         
         if (keys.get("amount") != null) {
-            Double d = (Double) keys.get("amount");
-            Integer i = d.intValue();
-            keys.put("amount", i);
+            Integer amount = ((Number) keys.get("amount")).intValue();
+            keys.put("amount", amount);
         }
         
         ItemStack item;
@@ -86,48 +90,53 @@ public class ItemStackAdapter extends TypeAdapter<ItemStack> {
         }
         
         if (keys.containsKey("meta")) {
-            @SuppressWarnings("unchecked") Map<String, Object> itemmeta = (Map<String, Object>) keys.get("meta");
+            Map<String, Object> itemmeta = (Map<String, Object>) keys.get("meta");
             itemmeta = recursiveDoubleToInteger(itemmeta);
-            ItemMeta meta = (ItemMeta) ConfigurationSerialization.deserializeObject(itemmeta, Objects.requireNonNull(ConfigurationSerialization.getClassByAlias("ItemMeta")));
+            ItemMeta meta = (ItemMeta) ConfigurationSerialization.deserializeObject(
+                    itemmeta, Objects.requireNonNull(ConfigurationSerialization.getClassByAlias("ItemMeta")));
             item.setItemMeta(meta);
         }
         
         return item;
     }
     
-    private final static String CLASS_KEY = "SERIAL-ADAPTER-CLASS-KEY";
-    
     @NotNull
     private static Map<String, Object> recursiveSerialization(@NotNull ConfigurationSerializable o) {
+        
         Map<String, Object> originalMap = o.serialize();
         Map<String, Object> map = new HashMap<>();
+        
         for (Map.Entry<String, Object> entry : originalMap.entrySet()) {
-            Object o2 = entry.getValue();
-            if (o2 instanceof ConfigurationSerializable) {
-                ConfigurationSerializable serializable = (ConfigurationSerializable) o2;
+            Object object = entry.getValue();
+            if (object instanceof ConfigurationSerializable) {
+                ConfigurationSerializable serializable = (ConfigurationSerializable) object;
                 Map<String, Object> newMap = recursiveSerialization(serializable);
                 newMap.put(CLASS_KEY, ConfigurationSerialization.getAlias(serializable.getClass()));
                 map.put(entry.getKey(), newMap);
             }
         }
+        
         map.put(CLASS_KEY, ConfigurationSerialization.getAlias(o.getClass()));
         return map;
     }
     
     @NotNull
     private static Map<String, Object> recursiveDoubleToInteger(@NotNull Map<String, Object> originalMap) {
+        
         Map<String, Object> map = new HashMap<>();
         for (Map.Entry<String, Object> entry : originalMap.entrySet()) {
-            Object o = entry.getValue();
-            if (o instanceof Double) {
-                Double d = (Double) o;
-                Integer i = d.intValue();
-                map.put(entry.getKey(), i);
-            } else if (o instanceof Map) {
-                @SuppressWarnings("unchecked") Map<String, Object> subMap = (Map<String, Object>) o;
+            
+            Object object = entry.getValue();
+            
+            if (object instanceof Double) {
+                int number = ((Double) object).intValue();
+                map.put(entry.getKey(), number);
+                
+            } else if (object instanceof Map) {
+                Map<String, Object> subMap = (Map<String, Object>) object;
                 map.put(entry.getKey(), recursiveDoubleToInteger(subMap));
             } else {
-                map.put(entry.getKey(), o);
+                map.put(entry.getKey(), object);
             }
         }
         return map;

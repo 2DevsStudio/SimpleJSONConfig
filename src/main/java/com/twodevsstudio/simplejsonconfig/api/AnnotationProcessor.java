@@ -41,13 +41,8 @@ public class AnnotationProcessor {
         
         Reflections reflections = new Reflections(builder);
         
-        
         processConfiguration(configsDirectory, reflections);
         processAutowired(reflections);
-        
-    }
-    
-    public AnnotationProcessor() {
         
     }
     
@@ -155,6 +150,7 @@ public class AnnotationProcessor {
                 config.reload();
             } catch (Exception exception) {
                 CustomLogger.warning(config.getClass().getName() + ": Config file is corrupted");
+                exception.printStackTrace();
                 return;
             }
             

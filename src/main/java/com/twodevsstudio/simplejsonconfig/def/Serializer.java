@@ -6,6 +6,7 @@ import com.twodevsstudio.simplejsonconfig.api.CommentProcessor;
 import com.twodevsstudio.simplejsonconfig.interfaces.PostProcessable;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,8 +18,8 @@ import java.nio.file.Files;
 
 @Getter
 public class Serializer {
-    private CommentProcessor commentProcessor = new CommentProcessor();
-    private JsonParser jsonParser = new JsonParser();
+    private final CommentProcessor commentProcessor = new CommentProcessor();
+    private final JsonParser jsonParser = new JsonParser();
     
     @Setter( onParam_ = @NotNull )
     private Gson gson;
@@ -43,32 +44,20 @@ public class Serializer {
      * @param object Object that is going to be serialized
      * @param file   File where serialized object will be stored
      */
+    @SneakyThrows
     public void saveConfig(Object object, @NotNull File file) {
         
-        try {
-            if (file.createNewFile()) {
-                String json = gson.toJson(jsonParser.parse(gson.toJson(object)));
-                try (PrintWriter out = new PrintWriter(file)) {
-                    out.println(json);
-                }
-                
-                commentProcessor.includeComments(file, object);
-            } else {
-                if (file.delete()) {
-                    if (file.createNewFile()) {
-                        String json = gson.toJson(jsonParser.parse(gson.toJson(object)));
-                        try (PrintWriter out = new PrintWriter(file)) {
-                            out.println(json);
-                        }
-                        
-                        commentProcessor.includeComments(file, object);
-                    }
-                    
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (!file.createNewFile()) {
+            Files.deleteIfExists(file.toPath());
+            file.createNewFile();
         }
+        
+        String json = gson.toJson(jsonParser.parse(gson.toJson(object)));
+        try (PrintWriter out = new PrintWriter(file)) {
+            out.println(json);
+        }
+        
+        commentProcessor.includeComments(file, object);
     }
     
     /**
@@ -84,21 +73,21 @@ public class Serializer {
     @Nullable
     public <T> T loadConfig(Class<T> clazz, @NotNull File file) {
         
-        T deserializedObject;
+        file = commentProcessor.getFileWithoutComments(file);
+        
         try {
-            file = commentProcessor.getFileWithoutComments(file);
+            T deserializedObject = gson.fromJson(new String(Files.readAllBytes(file.toPath())), clazz);
             
-            deserializedObject = gson.fromJson(new String(Files.readAllBytes(file.toPath())), clazz);
-            if (deserializedObject.getClass().equals(clazz)) {
-                if (deserializedObject instanceof PostProcessable) {
-                    ((PostProcessable) deserializedObject).gsonPostProcess();
-                }
-                return deserializedObject;
+            if (deserializedObject instanceof PostProcessable) {
+                ((PostProcessable) deserializedObject).gsonPostProcess();
             }
+            
+            return deserializedObject;
         } catch (IOException e) {
+            
             e.printStackTrace();
+            return null;
         }
-        return null;
     }
     
     /**
