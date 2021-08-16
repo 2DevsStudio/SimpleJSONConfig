@@ -1,7 +1,10 @@
 package com.twodevsstudio.simplejsonconfig.def;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.twodevsstudio.simplejsonconfig.api.CommentProcessor;
 import com.twodevsstudio.simplejsonconfig.interfaces.PostProcessable;
 import lombok.Getter;
@@ -52,12 +55,33 @@ public class Serializer {
             file.createNewFile();
         }
         
-        String json = gson.toJson(jsonParser.parse(gson.toJson(object)));
+        JsonElement jsonElement = gson.toJsonTree(jsonParser.parse(gson.toJson(object)));
+        JsonObject jsonObject = jsonElement.getAsJsonObject();
+        
         try (PrintWriter out = new PrintWriter(file)) {
-            out.println(json);
+            out.println(jsonObject.getAsString());
         }
         
         commentProcessor.includeComments(file, object);
+    }
+    
+    public <T> T loadConfig(TypeToken<T> token, @NotNull File file) {
+        
+        file = commentProcessor.getFileWithoutComments(file);
+        
+        try {
+            T deserializedObject = gson.fromJson(new String(Files.readAllBytes(file.toPath())), token.getType());
+            
+            if (deserializedObject instanceof PostProcessable) {
+                ((PostProcessable) deserializedObject).gsonPostProcess();
+            }
+            
+            return deserializedObject;
+        } catch (IOException e) {
+            
+            e.printStackTrace();
+            return null;
+        }
     }
     
     /**
@@ -73,21 +97,7 @@ public class Serializer {
     @Nullable
     public <T> T loadConfig(Class<T> clazz, @NotNull File file) {
         
-        file = commentProcessor.getFileWithoutComments(file);
-        
-        try {
-            T deserializedObject = gson.fromJson(new String(Files.readAllBytes(file.toPath())), clazz);
-            
-            if (deserializedObject instanceof PostProcessable) {
-                ((PostProcessable) deserializedObject).gsonPostProcess();
-            }
-            
-            return deserializedObject;
-        } catch (IOException e) {
-            
-            e.printStackTrace();
-            return null;
-        }
+        return loadConfig(TypeToken.get(clazz), file);
     }
     
     /**
@@ -106,6 +116,4 @@ public class Serializer {
         private static final Serializer INSTANCE = new Serializer();
         
     }
-    
-    
 }
