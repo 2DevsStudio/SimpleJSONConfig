@@ -26,8 +26,6 @@ public class ItemStackAdapter extends TypeAdapter<ItemStack> {
     
     }.getType();
     
-    private Serializer serializer = Serializer.getInst();
-    
     @Override
     public void write(JsonWriter jsonWriter, ItemStack itemStack) throws IOException {
         
@@ -69,7 +67,7 @@ public class ItemStackAdapter extends TypeAdapter<ItemStack> {
             serial.put("meta", meta);
         }
         
-        return serializer.getGson().toJson(serial);
+        return Serializer.getInst().getGson().toJson(serial);
     }
     
     @Nullable
