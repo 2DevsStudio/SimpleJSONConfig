@@ -55,11 +55,8 @@ public class Serializer {
             file.createNewFile();
         }
         
-        JsonElement jsonElement = gson.toJsonTree(jsonParser.parse(gson.toJson(object)));
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
-        
         try (PrintWriter out = new PrintWriter(file)) {
-            out.println(jsonObject.getAsString());
+            out.println(gson.toJson(object));
         }
         
         commentProcessor.includeComments(file, object);
