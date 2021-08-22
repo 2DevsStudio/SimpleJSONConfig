@@ -3,6 +3,7 @@ package com.twodevsstudio.simplejsonconfig.def;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.twodevsstudio.simplejsonconfig.def.adapters.ClassAdapter;
 import com.twodevsstudio.simplejsonconfig.def.adapters.InterfaceAdapter;
 import com.twodevsstudio.simplejsonconfig.def.adapters.ItemStackAdapter;
 import com.twodevsstudio.simplejsonconfig.def.adapters.RecordTypeAdapterFactory;
@@ -31,6 +32,7 @@ public class DefaultGsonBuilder {
         .disableHtmlEscaping()
         .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC)
         .serializeNulls()
+        .registerTypeHierarchyAdapter(Class.class, new ClassAdapter())
         .registerTypeAdapterFactory(new RecordTypeAdapterFactory())
         .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackAdapter())
         .registerTypeHierarchyAdapter(World.class, new WorldAdapter())
