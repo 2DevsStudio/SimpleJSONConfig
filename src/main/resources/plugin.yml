@@ -2,3 +2,5 @@ name: SimpleJsonConfig
 main: com.twodevsstudio.simplejsonconfig.Main
 version: 1.0
 author: 2devsstudio
+load: STARTUP
+api-version: 1.13
