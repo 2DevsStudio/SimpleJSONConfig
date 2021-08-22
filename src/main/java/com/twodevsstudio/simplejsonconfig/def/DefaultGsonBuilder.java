@@ -19,14 +19,14 @@ import java.lang.ref.Reference;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 
-@Getter( onMethod_ = @NotNull )
-@Setter( onParam_ = @NotNull )
+@Getter(onMethod_ = @NotNull)
+@Setter(onParam_ = @NotNull)
 public class DefaultGsonBuilder {
-    
+
     private GsonBuilder gsonBuilder;
-    
+
     public DefaultGsonBuilder() {
-        
+
         this.gsonBuilder = new GsonBuilder().setPrettyPrinting()
                 .disableHtmlEscaping()
                 .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC)
@@ -38,33 +38,33 @@ public class DefaultGsonBuilder {
                 .addDeserializationExclusionStrategy(new SuperclassExclusionStrategy())
                 .addSerializationExclusionStrategy(new SuperclassExclusionStrategy());
     }
-    
+
     public DefaultGsonBuilder registerTypeHierarchyAdapter(Class<?> baseType, Object typeAdapter) {
-        
+
         gsonBuilder.registerTypeHierarchyAdapter(baseType, typeAdapter);
         return this;
     }
-    
+
     public DefaultGsonBuilder registerTypeAdapter(Type type, Object typeAdapter) {
-        
+
         gsonBuilder.registerTypeAdapter(type, typeAdapter);
         return this;
     }
-    
+
     public DefaultGsonBuilder addDeserializationExclusionStrategy(ExclusionStrategy strategy) {
-        
+
         gsonBuilder.addDeserializationExclusionStrategy(strategy);
         return this;
     }
-    
+
     public DefaultGsonBuilder addSerializationExclusionStrategy(ExclusionStrategy strategy) {
-        
+
         gsonBuilder.addSerializationExclusionStrategy(strategy);
         return this;
     }
-    
+
     public Gson build() {
-        
+
         return gsonBuilder.create();
     }
 }
