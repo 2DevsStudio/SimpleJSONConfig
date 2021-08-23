@@ -3,7 +3,6 @@ package com.twodevsstudio.simplejsonconfig.def.adapters;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
 import com.twodevsstudio.simplejsonconfig.utils.Utils;
-import net.kyori.adventure.text.Component;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.attribute.AttributeModifier.Operation;
@@ -79,12 +78,12 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
             
             //Plain strings with ampersand color codes instead of Text Components
             if (key.equalsIgnoreCase(DISPLAY_NAME_MEMBER)) {
-                meta.put(key, Utils.textComponentAsString((Component) object));
+                meta.put(key, Utils.textComponentAsString(itemMeta.displayName()));
                 continue;
             }
             
             if (key.equalsIgnoreCase(LORE_MEMBER)) {
-                meta.put(key, Utils.textComponentAsString((List<Component>) object));
+                meta.put(key, Utils.textComponentAsString(itemMeta.lore()));
                 continue;
             }
             
@@ -132,10 +131,10 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         ItemMeta meta = (ItemMeta) ConfigurationSerialization.deserializeObject(
                 rawMeta, Objects.requireNonNull(ConfigurationSerialization.getClassByAlias("ItemMeta")));
         
-        meta.setDisplayName(Utils.colored(displayName));
-        meta.setLore(Utils.colored(lore));
+        meta.displayName(Utils.coloredComponent(displayName));
+        meta.lore(Utils.coloredComponent(lore));
         
-        Map<String, Object> attributes = (Map<String, Object>) rawMeta.get(ATTRIBUTES_MEMBER);
+        Map<String, Object> attributes = (Map<String, Object>) rawMeta.getOrDefault(ATTRIBUTES_MEMBER, new HashMap<>());
         deserializeAttributes(attributes, meta);
         item.setItemMeta(meta);
     }
