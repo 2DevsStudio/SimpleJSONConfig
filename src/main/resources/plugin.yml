@@ -4,3 +4,5 @@ version: 1.0
 author: 2devsstudio
 load: STARTUP
 api-version: 1.13
+commands:
+  test:
