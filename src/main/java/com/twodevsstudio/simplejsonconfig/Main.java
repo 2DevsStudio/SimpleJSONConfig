@@ -25,39 +25,5 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         
         CustomLogger.log("Enabling SimpleJsonConfig - 2DevsStudio");
-        getCommand("test").setExecutor(this);
-    }
-    
-    @Override
-    public boolean onCommand(@NotNull CommandSender sender,
-                             @NotNull Command command,
-                             @NotNull String label,
-                             @NotNull String[] args
-    ) {
-        
-        Player player = (Player) sender;
-        ItemStack itemStack = new ItemStack(Material.DIRT);
-        ItemMeta itemMeta = itemStack.getItemMeta();
-        
-        itemMeta.displayName(Utils.coloredComponent("&6This is Dirt"));
-        itemMeta.lore(Utils.coloredComponent(Arrays.asList("&6This is Lore #1", "&6This is Lore #2")));
-        itemMeta.addAttributeModifier(
-                Attribute.GENERIC_LUCK, new AttributeModifier("LUCK", 10, AttributeModifier.Operation.ADD_NUMBER));
-        itemStack.setItemMeta(itemMeta);
-        
-        player.getInventory().addItem(itemStack);
-        
-        File file = new File("test.json");
-        GsonBuilder gsonBuilder = new DefaultGsonBuilder().getGsonBuilder();
-        Serializer serializer = Serializer.getInst();
-        serializer.setGson(gsonBuilder.create());
-        
-        serializer.saveConfig(itemStack, file);
-        
-        ItemStack load = serializer.loadConfig(ItemStack.class, file);
-        
-        player.getInventory().addItem(load);
-        
-        return true;
     }
 }
