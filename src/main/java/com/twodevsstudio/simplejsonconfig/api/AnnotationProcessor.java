@@ -142,7 +142,7 @@ public class AnnotationProcessor {
   private Set<Field> getFieldsAnnotatedWithExcludingRecords(Reflections reflections,
       final Class<? extends Annotation> annotation) {
     return reflections.getStore().get(SkipRecordsAnnotationScanner.class, annotation.getName())
-        .stream().peek(s -> CustomLogger.log("Autowiring config class to field : " + s))
+        .stream()
         .map(annotated -> Utils.getFieldFromString(annotated,
             reflections.getConfiguration().getClassLoaders()))
         .collect(Collectors.toSet());
