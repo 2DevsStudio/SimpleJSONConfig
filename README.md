@@ -99,7 +99,7 @@ Maven:
 <dependency>
     <groupId>com.github.slighterr12</groupId>
     <artifactId>SimpleJSONConfig</artifactId>
-    <version>63f3cbf</version>
+    <version>9360e6b</version>
     <scope>compiled</scope> <!-- Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing -->
     <scope>provided</scope> <!-- Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing -->
 </dependency>
@@ -114,8 +114,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.slighterr12:SimpleJSONConfig:63f3cbf' //Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing
-    compileOnly 'com.github.slighterr12:SimpleJSONConfig:63f3cbf'    //Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing
+    implementation 'com.github.slighterr12:SimpleJSONConfig:9360e6b' //Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing
+    compileOnly 'com.github.slighterr12:SimpleJSONConfig:9360e6b'    //Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing
 }
 ```
 
