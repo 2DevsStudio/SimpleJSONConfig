@@ -15,9 +15,9 @@ public class SkipRecordsAnnotationScanner extends AbstractScanner {
 
   public void scan(final Object cls, Store store) {
 
-    if (cls.getClass().isRecord()) {
+    /*if (cls.getClass().isRecord()) {
       return;
-    }
+    }*/
 
     final String className = getMetadataAdapter().getClassName(cls);
     List<Object> fields = getMetadataAdapter().getFields(cls);
