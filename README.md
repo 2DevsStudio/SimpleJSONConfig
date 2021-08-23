@@ -25,7 +25,7 @@ Gradle:
 	}
     
 	dependencies {
-	        implementation 'com.github.slighterr12:SimpleJSONConfig:2247ea5'
+	        implementation 'com.github.slighterr12:SimpleJSONConfig:63f3cbf'
 	}
 ```
 
