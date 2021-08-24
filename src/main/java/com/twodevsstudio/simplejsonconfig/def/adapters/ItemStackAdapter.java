@@ -78,12 +78,12 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
             
             //Plain strings with ampersand color codes instead of Text Components
             if (key.equalsIgnoreCase(DISPLAY_NAME_MEMBER)) {
-                meta.put(key, Utils.textComponentAsString(itemMeta.displayName()));
+                meta.put(key, Utils.toAmpersand(itemMeta.getDisplayName()));
                 continue;
             }
             
             if (key.equalsIgnoreCase(LORE_MEMBER)) {
-                meta.put(key, Utils.textComponentAsString(itemMeta.lore()));
+                meta.put(key, Utils.toAmpersand(itemMeta.getLore()));
                 continue;
             }
             
@@ -131,8 +131,8 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         ItemMeta meta = (ItemMeta) ConfigurationSerialization.deserializeObject(
                 rawMeta, Objects.requireNonNull(ConfigurationSerialization.getClassByAlias("ItemMeta")));
         
-        meta.displayName(Utils.coloredComponent(displayName));
-        meta.lore(Utils.coloredComponent(lore));
+        meta.setDisplayName(Utils.colored(displayName));
+        meta.setLore(Utils.colored(lore));
         
         Map<String, Object> attributes = (Map<String, Object>) rawMeta.getOrDefault(ATTRIBUTES_MEMBER, new HashMap<>());
         deserializeAttributes(attributes, meta);
