@@ -131,8 +131,13 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         ItemMeta meta = (ItemMeta) ConfigurationSerialization.deserializeObject(
                 rawMeta, Objects.requireNonNull(ConfigurationSerialization.getClassByAlias("ItemMeta")));
         
-        meta.setDisplayName(Utils.colored(displayName));
-        meta.setLore(Utils.colored(lore));
+        if (displayName != null) {
+            meta.setDisplayName(Utils.colored(displayName));
+        }
+        if (lore != null) {
+            meta.setLore(Utils.colored(lore));
+        }
+        
         
         Map<String, Object> attributes = (Map<String, Object>) rawMeta.getOrDefault(ATTRIBUTES_MEMBER, new HashMap<>());
         deserializeAttributes(attributes, meta);
@@ -169,6 +174,7 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
     
     private void deserializeAttributes(Map<String, Object> attributes, ItemMeta meta) {
         
+        Set<UUID> uuidsInUse = new HashSet<>();
         for (Map.Entry<String, Object> entry : attributes.entrySet()) {
             
             String attributeName = entry.getKey();
@@ -177,15 +183,24 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
             List<Map<String, Object>> rawModifiers = (List<Map<String, Object>>) entry.getValue();
             List<AttributeModifier> modifiers = new ArrayList<>();
             
-            rawModifiers.forEach(rawModifier -> modifiers.add(fromRawModifier(rawModifier)));
+            for (Map<String, Object> rawModifier : rawModifiers) {
+                deserializeModifier(rawModifier, modifiers, uuidsInUse);
+            }
             modifiers.forEach(modifier -> meta.addAttributeModifier(attribute, modifier));
         }
     }
     
-    @NotNull
-    private AttributeModifier fromRawModifier(Map<String, Object> rawModifier) {
+    private void deserializeModifier(Map<String, Object> rawModifier,
+                                     List<AttributeModifier> modifiers,
+                                     Set<UUID> uuidsInUse
+    ) {
         
-        UUID modifierUUID = UUID.fromString(String.valueOf(rawModifier.get("uuid")));
+        UUID modifierUUID = UUID.fromString((String) rawModifier.get("uuid"));
+        if (uuidsInUse.contains(modifierUUID)) {
+            modifierUUID = UUID.randomUUID();
+        }
+        uuidsInUse.add(modifierUUID);
+        
         String modifierName = String.valueOf(rawModifier.get("name"));
         double modifierAmount = (double) rawModifier.get(AMOUNT_MEMBER);
         Operation modifierOperation = Operation.valueOf(String.valueOf(rawModifier.get("operation")));
@@ -196,6 +211,7 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
             modifierSlot = EquipmentSlot.valueOf(String.valueOf(rawSlot));
         }
         
-        return new AttributeModifier(modifierUUID, modifierName, modifierAmount, modifierOperation, modifierSlot);
+        modifiers.add(
+                new AttributeModifier(modifierUUID, modifierName, modifierAmount, modifierOperation, modifierSlot));
     }
 }
