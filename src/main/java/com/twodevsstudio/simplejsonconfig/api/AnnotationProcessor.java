@@ -14,11 +14,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.bukkit.plugin.Plugin;
@@ -106,7 +102,7 @@ public class AnnotationProcessor {
         .map(dependency -> dependency.getClass().getClassLoader())
         .collect(Collectors.toList());
 
-    classLoaders.addAll(List.of(additionalClassLoaders));
+    classLoaders.addAll(Arrays.asList(additionalClassLoaders));
 
     return classLoaders.toArray(new ClassLoader[0]);
   }
