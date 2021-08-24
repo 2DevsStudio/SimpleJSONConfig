@@ -58,8 +58,8 @@
 
     <repositories>
         <repository>
-            <id>spigotmc-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+            <id>papermc</id>
+            <url>https://papermc.io/repo/repository/maven-public/</url>
         </repository>
         <repository>
             <id>sonatype</id>
@@ -68,12 +68,12 @@
     </repositories>
 
     <dependencies>
-        <!--<dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
+        <dependency>
+            <groupId>com.destroystokyo.paper</groupId>
+            <artifactId>paper-api</artifactId>
             <version>1.16.5-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
-        </dependency>-->
+        </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
@@ -103,13 +103,6 @@
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-legacy</artifactId>
             <version>4.8.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>paper</artifactId>
-            <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/paper-1.16.5.jar</systemPath>
         </dependency>
     </dependencies>
 </project>
