@@ -120,8 +120,8 @@ public class Serializer {
         String json;
         if (configType == ConfigType.YAML) {
             Yaml yaml = new Yaml();
-            yaml.load(new FileReader(file));
-            json = gson.toJson(yaml, LinkedHashMap.class);
+            Object loadedYaml = yaml.load(new FileReader(file));
+            json = gson.toJson(loadedYaml, LinkedHashMap.class);
         } else {
             json = new String(Files.readAllBytes(file.toPath()));
         }
