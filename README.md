@@ -131,12 +131,12 @@ dependencies {
 @Configuration( "playerConfig" )
 public class MyConfig extends Config {
     private String playerName = "Slighter";
-    private transient OfflinePlayer cachedPlayer; //<- this field is not included in the config
+    private transient Player cachedPlayer; //<- this field is not included in the config
     
     public Player getCachedPlayer() {
         
         if (cachedPlayer == null) {
-            this.cachedPlayer = Bukkit.getOfflinePlayer(playerName);
+            this.cachedPlayer = Bukkit.getPlayer(playerName);
         }
         return this.cachedPlayer;
     }
