@@ -131,7 +131,7 @@ dependencies {
 @Configuration( "playerConfig" )
 public class MyConfig extends Config {
     private String playerName = "Slighter";
-    private transient Player cachedPlayer; //<- this field is not included in the config
+    private transient OfflinePlayer cachedPlayer; //<- this field is not included in the config
     
     public Player getCachedPlayer() {
         
