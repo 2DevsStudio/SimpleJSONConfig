@@ -2,7 +2,7 @@
 
 ## Main features:
 
-    - Create JSON configuration files for your plugins
+    - Create JSON/YAML configuration files for your plugins
     - Easly serialize your objects to json files with custom Serializer
     - Comment your configuration with @Comment annotation (Comments are also included in file)
     - Automatically wire your config objects to static fields wby using @Autowired annotation
@@ -22,12 +22,16 @@
 ### Register SimpleJsonConfig in your plugin
 
 ```java
+import com.twodevsstudio.simplejsonconfig.def.ConfigType;
+
 public class Main extends JavaPlugin {
     
     @Override
     public void onEnable() {
         // Default directory is YourPlugin/configuration/
         SimpleJSONConfig.INSTANCE.register(this);
+        // You can change your config type to YAML as well!
+        SimpleJSONConfig.INSTANCE.register(this, ConfigType.YAML);
         // Or Specify default directory
         SimpleJSONConfig.INSTANCE.register(this, new File("default/config/directory"));
     }
@@ -99,7 +103,7 @@ Maven:
 <dependency>
     <groupId>com.github.slighterr12</groupId>
     <artifactId>SimpleJSONConfig</artifactId>
-    <version>9360e6b</version>
+    <version>1.1</version>
     <scope>compiled</scope> <!-- Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing -->
     <scope>provided</scope> <!-- Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing -->
 </dependency>
@@ -114,8 +118,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.slighterr12:SimpleJSONConfig:9360e6b' //Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing
-    compileOnly 'com.github.slighterr12:SimpleJSONConfig:9360e6b'    //Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing
+    implementation 'com.github.slighterr12:SimpleJSONConfig:1.1' //Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing
+    compileOnly 'com.github.slighterr12:SimpleJSONConfig:1.1'    //Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing
 }
 ```
 
@@ -145,6 +149,8 @@ public class MyConfig extends Config {
 #### You can also serialize objects which are not configuration using `Serializer`
 
 ```java
+import com.twodevsstudio.simplejsonconfig.def.ConfigType;
+
 public class MyClass {
     
     private static final Serializer SERIALIZER = Serializer.getInst();
@@ -155,11 +161,14 @@ public class MyClass {
     public void save(File targetFile) {
         
         SERIALIZER.saveConfig(this, targetFile);
+        SERIALIZER.saveConfig(this, targetFile, ConfigType.YAML); //You can also specify type of serialization
     }
     
     public static MyClass load(File sourceFile) {
         
         return SERIALIZER.loadConfig(MyClass.class, sourceFile);
+        //If you previously serialized as YAML you have to remember to specify type on loading
+        return SERIALIZER.loadConfig(MyClass.class, sourceFile, ConfigType.YAML);
     }
 }
 ```
