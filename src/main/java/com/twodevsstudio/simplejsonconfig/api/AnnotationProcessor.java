@@ -1,5 +1,6 @@
 package com.twodevsstudio.simplejsonconfig.api;
 
+import com.twodevsstudio.simplejsonconfig.def.ConfigType;
 import com.twodevsstudio.simplejsonconfig.def.Serializer;
 import com.twodevsstudio.simplejsonconfig.def.scanner.SkipRecordsAnnotationScanner;
 import com.twodevsstudio.simplejsonconfig.interfaces.Autowired;
@@ -80,7 +81,10 @@ public class AnnotationProcessor {
                 continue;
             }
             
-            String fileName = configName.endsWith(".json") ? configName : configName + ".json";
+            ConfigType configType = Config.getType();
+            String fileName = configName.endsWith(configType.getExtension()) ?
+                              configName :
+                              configName + configType.getExtension();
             
             File configFile = new File(configsDirectory, fileName);
             
@@ -174,7 +178,7 @@ public class AnnotationProcessor {
             try {
                 configFile.mkdirs();
                 configFile.createNewFile();
-                Serializer.getInst().saveConfig(config, configFile);
+                Serializer.getInst().saveConfig(config, configFile, Config.getType());
             } catch (IOException ex) {
                 ex.printStackTrace();
                 return;

@@ -1,8 +1,9 @@
 package com.twodevsstudio.simplejsonconfig.def;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.twodevsstudio.simplejsonconfig.api.CommentProcessor;
@@ -13,11 +14,14 @@ import lombok.SneakyThrows;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
+import java.util.LinkedHashMap;
 
 @Getter
 public class Serializer {
@@ -41,6 +45,22 @@ public class Serializer {
         this.gson = new DefaultGsonBuilder().getGsonBuilder().create();
     }
     
+    @SneakyThrows
+    public String getYamlString(String jsonString) {
+        
+        JsonNode jsonNodeTree = new ObjectMapper().readTree(jsonString);
+        return new YAMLMapper().writeValueAsString(jsonNodeTree);
+    }
+    
+    public String getFileContent(Object object, ConfigType type) {
+        
+        String jsonString = gson.toJson(object);
+        if (type == ConfigType.YAML) {
+            return getYamlString(jsonString);
+        }
+        return jsonString;
+    }
+    
     /**
      * Serialize parameterized object to JSON format and save it into the file
      *
@@ -50,24 +70,38 @@ public class Serializer {
     @SneakyThrows
     public void saveConfig(Object object, @NotNull File file) {
         
+        saveConfig(object, file, ConfigType.JSON);
+    }
+    
+    @SneakyThrows
+    public void saveConfig(Object object, @NotNull File file, ConfigType configType) {
+        
         if (!file.createNewFile()) {
             Files.deleteIfExists(file.toPath());
             file.createNewFile();
         }
         
         try (PrintWriter out = new PrintWriter(file)) {
-            out.println(gson.toJson(object));
+            out.println(getFileContent(object, configType));
         }
         
         commentProcessor.includeComments(file, object);
+        
     }
     
     public <T> T loadConfig(TypeToken<T> token, @NotNull File file) {
         
+        return loadConfig(token, file, ConfigType.JSON);
+    }
+    
+    public <T> T loadConfig(TypeToken<T> token, @NotNull File file, ConfigType configType) {
+        
         file = commentProcessor.getFileWithoutComments(file);
         
         try {
-            T deserializedObject = gson.fromJson(new String(Files.readAllBytes(file.toPath())), token.getType());
+            
+            String json = readJsonString(file, configType);
+            T deserializedObject = gson.fromJson(json, token.getType());
             
             if (deserializedObject instanceof PostProcessable) {
                 ((PostProcessable) deserializedObject).gsonPostProcess();
@@ -79,6 +113,19 @@ public class Serializer {
             e.printStackTrace();
             return null;
         }
+    }
+    
+    private String readJsonString(File file, ConfigType configType) throws IOException {
+        
+        String json;
+        if (configType == ConfigType.YAML) {
+            Yaml yaml = new Yaml();
+            Object loadedYaml = yaml.load(new FileReader(file));
+            json = gson.toJson(loadedYaml, LinkedHashMap.class);
+        } else {
+            json = new String(Files.readAllBytes(file.toPath()));
+        }
+        return json;
     }
     
     /**
@@ -94,7 +141,13 @@ public class Serializer {
     @Nullable
     public <T> T loadConfig(Class<T> clazz, @NotNull File file) {
         
-        return loadConfig(TypeToken.get(clazz), file);
+        return loadConfig(TypeToken.get(clazz), file, ConfigType.JSON);
+    }
+    
+    @Nullable
+    public <T> T loadConfig(Class<T> clazz, @NotNull File file, ConfigType type) {
+        
+        return loadConfig(TypeToken.get(clazz), file, type);
     }
     
     /**
