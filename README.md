@@ -136,7 +136,7 @@ public class MyConfig extends Config {
     public Player getCachedPlayer() {
         
         if (cachedPlayer == null) {
-            this.cachedPlayer = Bukkit.getOfflinePlayer(playerName);
+            this.cachedPlayer = Bukkit.getPlayer(playerName);
         }
         return this.cachedPlayer;
     }
