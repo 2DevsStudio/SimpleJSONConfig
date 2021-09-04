@@ -5,6 +5,7 @@ import com.twodevsstudio.simplejsonconfig.api.Config;
 import com.twodevsstudio.simplejsonconfig.def.ConfigType;
 import com.twodevsstudio.simplejsonconfig.exceptions.InstanceOverrideException;
 import com.twodevsstudio.simplejsonconfig.utils.CustomLogger;
+import lombok.Getter;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -16,6 +17,7 @@ import java.util.Set;
 public enum SimpleJSONConfig {
     INSTANCE;
     
+    @Getter
     private final AnnotationProcessor annotationProcessor = new AnnotationProcessor();
     private final Map<Plugin, File> plugins = new HashMap<>();
     
@@ -48,5 +50,13 @@ public enum SimpleJSONConfig {
         
         Config.setType(configType);
         register(javaPlugin, configsDirectory);
+    }
+    
+    /**
+     * Does not autowire external configs!
+     */
+    public void scanConfiguration(File directory, Class<?> startingPoint) {
+        
+        annotationProcessor.processConfiguration(directory, startingPoint, plugins.keySet());
     }
 }

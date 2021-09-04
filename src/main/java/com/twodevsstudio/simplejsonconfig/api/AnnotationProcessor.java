@@ -32,17 +32,22 @@ public class AnnotationProcessor {
     
     public void processAnnotations(@NotNull Plugin plugin, File configsDirectory, Set<Plugin> dependencies) {
         
-        ConfigurationBuilder builder = new ConfigurationBuilder();
-        
-        builder.addUrls(ClasspathHelper.forPackage(plugin.getClass().getPackage().getName(),
+        Reflections reflections = buildReflections(plugin.getClass().getPackage().getName(),
                 getClassLoaders(dependencies, plugin.getClass().getClassLoader(), ClassLoader.getSystemClassLoader(),
                         ClasspathHelper.contextClassLoader(), ClasspathHelper.staticClassLoader()
                 )
-        ));
+        );
         
-        builder.addScanners(new TypeAnnotationsScanner(), new SkipRecordsAnnotationScanner(), new SubTypesScanner());
+        processConfiguration(configsDirectory, reflections);
+    }
+    
+    public void processConfiguration(File configsDirectory, Class<?> clazz, Set<Plugin> dependencies) {
         
-        Reflections reflections = new Reflections(builder);
+        Reflections reflections = buildReflections(clazz.getPackage().getName(),
+                getClassLoaders(dependencies, clazz.getClassLoader(), ClassLoader.getSystemClassLoader(),
+                        ClasspathHelper.contextClassLoader(), ClasspathHelper.staticClassLoader()
+                )
+        );
         
         processConfiguration(configsDirectory, reflections);
     }
@@ -52,12 +57,12 @@ public class AnnotationProcessor {
         
         Set<Class<?>> configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
         
-        for (Class<?> annotadedClass : configurationClasses) {
+        for (Class<?> annotatedClass : configurationClasses) {
             
-            Configuration configurationAnnotation = annotadedClass.getAnnotation(Configuration.class);
+            Configuration configurationAnnotation = annotatedClass.getAnnotation(Configuration.class);
             String configName = configurationAnnotation.value();
             
-            if (!isConfig(annotadedClass)) {
+            if (!isConfig(annotatedClass)) {
                 CustomLogger.warning("Configuration " +
                                      configName +
                                      " could not be loaded. Class annotated as @Configuration does not extends " +
@@ -66,7 +71,7 @@ public class AnnotationProcessor {
                 continue;
             }
             
-            Class<? extends Config> configClass = (Class<? extends Config>) annotadedClass;
+            Class<? extends Config> configClass = (Class<? extends Config>) annotatedClass;
             
             Constructor<? extends Config> constructor;
             Config config;
@@ -215,5 +220,16 @@ public class AnnotationProcessor {
         }
         
         return comments;
+    }
+    
+    private Reflections buildReflections(String packageName, ClassLoader[] classLoaders) {
+        
+        ConfigurationBuilder builder = new ConfigurationBuilder();
+        
+        builder.addUrls(ClasspathHelper.forPackage(packageName, classLoaders));
+        
+        builder.addScanners(new TypeAnnotationsScanner(), new SkipRecordsAnnotationScanner(), new SubTypesScanner());
+        
+        return new Reflections(builder);
     }
 }
