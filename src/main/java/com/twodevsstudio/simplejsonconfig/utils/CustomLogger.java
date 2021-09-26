@@ -12,25 +12,25 @@ public class CustomLogger {
     public static String ERROR_PREFIX = "[ERROR] »» ";
 
     public static void log(@NotNull String message) {
-        Bukkit.getLogger().info(TextUtility.colorize(LOG_PREFIX + message));
+        Bukkit.getLogger().info(Utils.colored(LOG_PREFIX + message));
     }
 
     public static void warning(@NotNull String message) {
-        Bukkit.getLogger().warning(TextUtility.colorize(WARNING_PREFIX + message));
+        Bukkit.getLogger().warning(Utils.colored(WARNING_PREFIX + message));
     }
 
     public static void warning(@NotNull Throwable throwable) {
-        Bukkit.getLogger().warning(TextUtility.colorize(WARNING_PREFIX + throwable.getMessage()));
+        Bukkit.getLogger().warning(Utils.colored(WARNING_PREFIX + throwable.getMessage()));
         throwable.getCause().printStackTrace();
     }
 
     public static void error(@NotNull String message) {
-        Bukkit.getLogger().severe(TextUtility.colorize(ERROR_PREFIX + message));
+        Bukkit.getLogger().severe(Utils.colored(ERROR_PREFIX + message));
     }
 
 
     public static void error(@NotNull Throwable throwable) {
-        Bukkit.getLogger().severe(TextUtility.colorize(ERROR_PREFIX + throwable.getMessage()));
+        Bukkit.getLogger().severe(Utils.colored(ERROR_PREFIX + throwable.getMessage()));
         throwable.getCause().printStackTrace();
     }
 
