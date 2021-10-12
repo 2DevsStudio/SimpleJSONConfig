@@ -81,7 +81,7 @@ public class Serializer {
             file.createNewFile();
         }
         
-        try (PrintWriter out = new PrintWriter(file)) {
+        try (PrintWriter out = new PrintWriter(file, "UTF-8")) {
             out.println(getFileContent(object, configType));
         }
         
