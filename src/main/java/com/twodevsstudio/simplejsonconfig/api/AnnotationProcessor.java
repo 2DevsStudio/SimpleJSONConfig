@@ -1,7 +1,10 @@
 package com.twodevsstudio.simplejsonconfig.api;
 
-import com.twodevsstudio.simplejsonconfig.def.ConfigType;
+import com.twodevsstudio.simplejsonconfig.data.Identifiable;
+import com.twodevsstudio.simplejsonconfig.data.Stored;
+import com.twodevsstudio.simplejsonconfig.data.service.FileService;
 import com.twodevsstudio.simplejsonconfig.def.Serializer;
+import com.twodevsstudio.simplejsonconfig.def.StoreType;
 import com.twodevsstudio.simplejsonconfig.def.scanner.SkipRecordsAnnotationScanner;
 import com.twodevsstudio.simplejsonconfig.interfaces.Autowired;
 import com.twodevsstudio.simplejsonconfig.interfaces.Comment;
@@ -23,6 +26,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,6 +45,7 @@ public class AnnotationProcessor {
         );
         
         processConfiguration(configsDirectory, reflections);
+        processStores(plugin.getDataFolder().toPath(), reflections);
     }
     
     public void processConfiguration(File configsDirectory, Class<?> clazz, Set<Plugin> dependencies) {
@@ -86,7 +93,7 @@ public class AnnotationProcessor {
                 continue;
             }
             
-            ConfigType configType = Config.getType();
+            StoreType configType = Config.getType();
             String fileName = configName.endsWith(configType.getExtension()) ?
                               configName :
                               configName + configType.getExtension();
@@ -101,6 +108,48 @@ public class AnnotationProcessor {
             
         }
         
+    }
+    
+    public void processStores(Path pluginDirectory, Class<?> clazz, Set<Plugin> dependencies) {
+        
+        Reflections reflections = buildReflections(clazz.getPackage().getName(),
+                getClassLoaders(dependencies, clazz.getClassLoader(), ClassLoader.getSystemClassLoader(),
+                        ClasspathHelper.contextClassLoader(), ClasspathHelper.staticClassLoader()
+                )
+        );
+        
+        processStores(pluginDirectory, reflections);
+    }
+    
+    
+    @SneakyThrows
+    public void processStores(Path pluginDirectory, Reflections reflections) {
+        
+        Set<Class<?>> storedClasses = reflections.getTypesAnnotatedWith(Stored.class);
+        
+        for (Class<?> storedClass : storedClasses) {
+            if (!isStored(storedClass)) {
+                CustomLogger.warning("Cannot create a Service for " +
+                                     storedClass.getName() +
+                                     ". Class annotated as @Stored does not extends " +
+                                     Identifiable.class.getName());
+                
+                continue;
+            }
+            
+            Class<Identifiable> identifiable = (Class<Identifiable>) storedClass;
+            
+            Stored annotation = storedClass.getAnnotation(Stored.class);
+            String storeDirectoryPath = annotation.value();
+            StoreType storeType = annotation.storeType();
+            
+            Path path = Paths.get(pluginDirectory.toString(), storeDirectoryPath);
+            Files.createDirectories(path);
+            
+            Service service = new FileService<>(identifiable, path, storeType);
+            
+            ServiceContainer.SINGLETONS.put(identifiable, service);
+        }
     }
     
     private ClassLoader[] getClassLoaders(Set<Plugin> dependencies, ClassLoader... additionalClassLoaders) {
@@ -165,6 +214,11 @@ public class AnnotationProcessor {
                 Config config = Config.getConfig((Class<? extends Config>) type);
                 field.set(null, config);
             }
+            if (isStored(type) && isStatic(field.getModifiers()) && field.get(null) == null) {
+                
+                Service config = Service.getService((Class<? extends Identifiable>) type);
+                field.set(null, config);
+            }
             
         }
     }
@@ -172,6 +226,11 @@ public class AnnotationProcessor {
     public boolean isConfig(@NotNull Class<?> clazz) {
         
         return clazz.getSuperclass() == Config.class;
+    }
+    
+    public boolean isStored(@NotNull Class<?> clazz) {
+        
+        return clazz.isAssignableFrom(Identifiable.class);
     }
     
     private void initConfig(@NotNull Config config, @NotNull File configFile) {

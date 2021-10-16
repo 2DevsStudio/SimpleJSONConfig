@@ -7,11 +7,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
 class ConfigContainer {
     
-    static final Map<Class<? extends Config>, Config> SINGLETONS = new HashMap<>();
+    static final Map<Class<? extends Config>, Config> SINGLETONS = new ConcurrentHashMap<>();
     
     static <T extends Config> T getConfiguration(Class<T> configClass) {
         

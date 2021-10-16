@@ -2,7 +2,7 @@ package com.twodevsstudio.simplejsonconfig;
 
 import com.twodevsstudio.simplejsonconfig.api.AnnotationProcessor;
 import com.twodevsstudio.simplejsonconfig.api.Config;
-import com.twodevsstudio.simplejsonconfig.def.ConfigType;
+import com.twodevsstudio.simplejsonconfig.def.StoreType;
 import com.twodevsstudio.simplejsonconfig.exceptions.InstanceOverrideException;
 import com.twodevsstudio.simplejsonconfig.utils.CustomLogger;
 import lombok.Getter;
@@ -41,12 +41,12 @@ public enum SimpleJSONConfig {
         register(javaPlugin, new File(javaPlugin.getDataFolder() + "/configuration"));
     }
     
-    public void register(JavaPlugin javaPlugin, ConfigType configType) {
+    public void register(JavaPlugin javaPlugin, StoreType configType) {
         
         register(javaPlugin, new File(javaPlugin.getDataFolder() + "/configuration"), configType);
     }
     
-    public void register(JavaPlugin javaPlugin, File configsDirectory, ConfigType configType) {
+    public void register(JavaPlugin javaPlugin, File configsDirectory, StoreType configType) {
         
         Config.setType(configType);
         register(javaPlugin, configsDirectory);
@@ -58,5 +58,13 @@ public enum SimpleJSONConfig {
     public void scanConfiguration(File directory, Class<?> startingPoint) {
         
         annotationProcessor.processConfiguration(directory, startingPoint, plugins.keySet());
+    }
+    
+    /**
+     * Does not autowire external stores!
+     */
+    public void scanStoredTypes(File directory, Class<?> startingPoint) {
+        
+        annotationProcessor.processStores(directory.toPath(), startingPoint, plugins.keySet());
     }
 }

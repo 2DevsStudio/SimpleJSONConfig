@@ -1,7 +1,7 @@
 package com.twodevsstudio.simplejsonconfig.api;
 
 import com.twodevsstudio.simplejsonconfig.def.Serializer;
-import com.twodevsstudio.simplejsonconfig.def.ConfigType;
+import com.twodevsstudio.simplejsonconfig.def.StoreType;
 import com.twodevsstudio.simplejsonconfig.exceptions.ConfigNotFoundException;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,7 +18,7 @@ public abstract class Config {
     private static final Serializer SERIALIZER = Serializer.getInst();
     @Setter
     @Getter
-    private static ConfigType type = ConfigType.JSON;
+    private static StoreType type = StoreType.JSON;
     protected transient File configFile;
     
     protected Config() {

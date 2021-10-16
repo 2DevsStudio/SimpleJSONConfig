@@ -16,10 +16,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
 
@@ -52,10 +50,10 @@ public class Serializer {
         return new YAMLMapper().writeValueAsString(jsonNodeTree);
     }
     
-    public String getFileContent(Object object, ConfigType type) {
+    public String getFileContent(Object object, StoreType type) {
         
         String jsonString = gson.toJson(object);
-        if (type == ConfigType.YAML) {
+        if (type == StoreType.YAML) {
             return getYamlString(jsonString);
         }
         return jsonString;
@@ -70,11 +68,11 @@ public class Serializer {
     @SneakyThrows
     public void saveConfig(Object object, @NotNull File file) {
         
-        saveConfig(object, file, ConfigType.JSON);
+        saveConfig(object, file, StoreType.JSON);
     }
     
     @SneakyThrows
-    public void saveConfig(Object object, @NotNull File file, ConfigType configType) {
+    public void saveConfig(Object object, @NotNull File file, StoreType configType) {
         
         if (!file.createNewFile()) {
             Files.deleteIfExists(file.toPath());
@@ -91,10 +89,10 @@ public class Serializer {
     
     public <T> T loadConfig(TypeToken<T> token, @NotNull File file) {
         
-        return loadConfig(token, file, ConfigType.JSON);
+        return loadConfig(token, file, StoreType.JSON);
     }
     
-    public <T> T loadConfig(TypeToken<T> token, @NotNull File file, ConfigType configType) {
+    public <T> T loadConfig(TypeToken<T> token, @NotNull File file, StoreType configType) {
         
         file = commentProcessor.getFileWithoutComments(file);
         
@@ -115,12 +113,13 @@ public class Serializer {
         }
     }
     
-    private String readJsonString(File file, ConfigType configType) throws IOException {
+    private String readJsonString(File file, StoreType configType) throws IOException {
         
         String json;
-        if (configType == ConfigType.YAML) {
+        if (configType == StoreType.YAML) {
             Yaml yaml = new Yaml();
-            Object loadedYaml = yaml.load(new FileReader(file));
+            Object loadedYaml = yaml.load(
+                    new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)));
             json = gson.toJson(loadedYaml, LinkedHashMap.class);
         } else {
             json = new String(Files.readAllBytes(file.toPath()));
@@ -141,11 +140,11 @@ public class Serializer {
     @Nullable
     public <T> T loadConfig(Class<T> clazz, @NotNull File file) {
         
-        return loadConfig(TypeToken.get(clazz), file, ConfigType.JSON);
+        return loadConfig(TypeToken.get(clazz), file, StoreType.JSON);
     }
     
     @Nullable
-    public <T> T loadConfig(Class<T> clazz, @NotNull File file, ConfigType type) {
+    public <T> T loadConfig(Class<T> clazz, @NotNull File file, StoreType type) {
         
         return loadConfig(TypeToken.get(clazz), file, type);
     }

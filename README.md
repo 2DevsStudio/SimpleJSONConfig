@@ -22,7 +22,7 @@
 ### Register SimpleJsonConfig in your plugin
 
 ```java
-import com.twodevsstudio.simplejsonconfig.def.ConfigType;
+import com.twodevsstudio.simplejsonconfig.def.StoreType;
 
 public class Main extends JavaPlugin {
     
@@ -31,7 +31,7 @@ public class Main extends JavaPlugin {
         // Default directory is YourPlugin/configuration/
         SimpleJSONConfig.INSTANCE.register(this);
         // You can change your config type to YAML as well!
-        SimpleJSONConfig.INSTANCE.register(this, ConfigType.YAML);
+        SimpleJSONConfig.INSTANCE.register(this, StoreType.YAML);
         // Or Specify default directory
         SimpleJSONConfig.INSTANCE.register(this, new File("default/config/directory"));
     }
@@ -149,7 +149,7 @@ public class MyConfig extends Config {
 #### You can also serialize objects which are not configuration using `Serializer`
 
 ```java
-import com.twodevsstudio.simplejsonconfig.def.ConfigType;
+import com.twodevsstudio.simplejsonconfig.def.StoreType;
 
 public class MyClass {
     
@@ -161,14 +161,14 @@ public class MyClass {
     public void save(File targetFile) {
         
         SERIALIZER.saveConfig(this, targetFile);
-        SERIALIZER.saveConfig(this, targetFile, ConfigType.YAML); //You can also specify type of serialization
+        SERIALIZER.saveConfig(this, targetFile, StoreType.YAML); //You can also specify type of serialization
     }
     
     public static MyClass load(File sourceFile) {
         
         return SERIALIZER.loadConfig(MyClass.class, sourceFile);
         //If you previously serialized as YAML you have to remember to specify type on loading
-        return SERIALIZER.loadConfig(MyClass.class, sourceFile, ConfigType.YAML);
+        return SERIALIZER.loadConfig(MyClass.class, sourceFile, StoreType.YAML);
     }
 }
 ```
