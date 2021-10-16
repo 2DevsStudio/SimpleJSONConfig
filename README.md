@@ -3,6 +3,7 @@
 ## Main features:
 
     - Create JSON/YAML configuration files for your plugins
+    - Persist your data in flat files using Data Stores
     - Easly serialize your objects to json files with custom Serializer
     - Comment your configuration with @Comment annotation (Comments are also included in file)
     - Automatically wire your config objects to static fields wby using @Autowired annotation
@@ -22,8 +23,6 @@
 ### Register SimpleJsonConfig in your plugin
 
 ```java
-import com.twodevsstudio.simplejsonconfig.def.StoreType;
-
 public class Main extends JavaPlugin {
     
     @Override
@@ -44,7 +43,6 @@ public class Main extends JavaPlugin {
 ### Class should be annotated as `@Configuration` and should extend `Config` class
 
 ```java
-
 @Configuration( "config" )        //OR
 @Configuration( "config.json" )   //OR
 @Configuration( "path/to/config" )
@@ -75,14 +73,60 @@ public class Main {
 ```
 
 ```java
-import com.twodevsstudio.simplejsonconfig.api.Config;
-import com.twodevsstudio.simplejsonconfig.interfaces.Autowired;
-
 public class Main {
     @Autowired
     private static MyConfig config;
     
     // ... your logic
+}
+```
+
+## Data Stores
+
+### Usage is very similar to the usage of configurations
+#### Create a class you want to persist
+#### Class have to be annotated with `@Stored` annotation and implement `Identifiable` interface
+
+```java
+//Second parameter is optional, JSON is the default value
+@Stored( value = "directory", storeType = StoreType.JSON )
+//Implement Identifiable interface and specify the type of ID
+public class MyClass implements Identifiable<UUID> {
+    //Add id field of specified type
+    private final UUID id;
+    private int count;
+    
+    //Implement getId method or simply add @Getter annotation on the field
+    public UUID getId() {
+        return id; 
+    }
+}
+```
+
+#### After this you can access the service of your class and then you are ready to go!
+#### Accessing the Service is identical to the accessing configurations
+
+```java
+public class Main {
+    @Autowired
+    private static Service<UUID, MyClass> service;
+    //OR
+    private static Service<UUID, MyClass> service = Service.getService(MyClass.class);
+    
+    
+    public void foo() {
+        
+        MyClass myClass = new MyClass(UUID.randomUUID());
+    
+        // Serialize your object to the file in specified directory
+        service.save(myClass);
+        // Read your object by ID
+        MyClass byId = service.getById(myClass.getId());
+        // Get all objects which are matching the condition
+        List<MyClass> matching = service.getMatching(aClass -> aClass.getCount() > 10);
+        // Delete your object
+        service.delete(myClass);
+    }
 }
 ```
 
@@ -149,8 +193,6 @@ public class MyConfig extends Config {
 #### You can also serialize objects which are not configuration using `Serializer`
 
 ```java
-import com.twodevsstudio.simplejsonconfig.def.StoreType;
-
 public class MyClass {
     
     private static final Serializer SERIALIZER = Serializer.getInst();
@@ -176,7 +218,6 @@ public class MyClass {
 #### You can easily save and reload your config
 
 ```java
-
 @Getter
 @Setter
 @Configuration( "config" )
