@@ -16,10 +16,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
 
@@ -120,7 +118,8 @@ public class Serializer {
         String json;
         if (configType == ConfigType.YAML) {
             Yaml yaml = new Yaml();
-            Object loadedYaml = yaml.load(new FileReader(file));
+            Object loadedYaml = yaml.load(
+                    new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)));
             json = gson.toJson(loadedYaml, LinkedHashMap.class);
         } else {
             json = new String(Files.readAllBytes(file.toPath()));
