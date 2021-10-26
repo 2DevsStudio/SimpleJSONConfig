@@ -230,7 +230,7 @@ public class AnnotationProcessor {
     
     public boolean isStored(@NotNull Class<?> clazz) {
         
-        return clazz.isAssignableFrom(Identifiable.class);
+        return Identifiable.class.isAssignableFrom(clazz);
     }
     
     private void initConfig(@NotNull Config config, @NotNull File configFile) {
