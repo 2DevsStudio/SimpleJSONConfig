@@ -4,15 +4,10 @@ import java.util.List;
 import org.reflections.Store;
 import org.reflections.scanners.AbstractScanner;
 
-
 @SuppressWarnings({"unchecked"})
 public class SkipRecordsAnnotationScanner extends AbstractScanner {
 
-
-  /**
-   * scans for field's annotations
-   */
-
+  /** scans for field's annotations */
   public void scan(final Object cls, Store store) {
 
     /*if (cls.getClass().isRecord()) {
