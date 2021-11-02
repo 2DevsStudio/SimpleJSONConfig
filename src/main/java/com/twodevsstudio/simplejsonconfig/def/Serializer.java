@@ -14,6 +14,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.MalformedInputException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
@@ -85,22 +87,31 @@ public class Serializer {
   @SneakyThrows
   public void saveConfig(Object object, @NotNull File file) {
 
-    saveConfig(object, file, ConfigType.JSON);
+    saveConfig(object, file, ConfigType.JSON, StandardCharsets.UTF_8);
   }
 
   @SneakyThrows
-  public void saveConfig(Object object, @NotNull File file, ConfigType configType) {
+  public void saveConfig(
+      Object object, @NotNull File file, ConfigType configType, Charset encoding) {
 
-    if (!file.createNewFile()) {
-      Files.deleteIfExists(file.toPath());
-      file.createNewFile();
+    try {
+      if (!file.createNewFile()) {
+        Files.deleteIfExists(file.toPath());
+        file.createNewFile();
+      }
+      try (PrintWriter out = new PrintWriter(file, encoding)) {
+        out.println(getFileContent(object, configType));
+      }
+      commentProcessor.includeComments(file, object);
+    } catch (MalformedInputException exception) {
+      saveConfig(
+          object,
+          file,
+          configType,
+          encoding == StandardCharsets.US_ASCII
+              ? StandardCharsets.ISO_8859_1
+              : StandardCharsets.US_ASCII);
     }
-
-    try (PrintWriter out = new PrintWriter(file, "UTF-8")) {
-      out.println(getFileContent(object, configType));
-    }
-
-    commentProcessor.includeComments(file, object);
   }
 
   public <T> T loadConfig(TypeToken<T> token, @NotNull File file) {
