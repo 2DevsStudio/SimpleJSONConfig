@@ -144,7 +144,7 @@ Maven:
 <dependency>
     <groupId>com.github.2DevsStudio</groupId>
     <artifactId>SimpleJSONConfig</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
     <scope>compiled</scope> <!-- Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing -->
     <scope>provided</scope> <!-- Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing -->
 </dependency>
@@ -159,8 +159,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.2DevsStudio:SimpleJSONConfig:1.1' //Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing
-    compileOnly 'com.github.2DevsStudio:SimpleJSONConfig:1.1'    //Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing
+    implementation 'com.github.2DevsStudio:SimpleJSONConfig:1.2' //Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing
+    compileOnly 'com.github.2DevsStudio:SimpleJSONConfig:1.2'    //Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing
 }
 ```
 
