@@ -5,6 +5,7 @@ import com.twodevsstudio.simplejsonconfig.def.Serializer;
 import com.twodevsstudio.simplejsonconfig.exceptions.ConfigNotFoundException;
 import java.io.File;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
@@ -77,6 +78,6 @@ public abstract class Config {
 
   public void save() {
 
-    SERIALIZER.saveConfig(this, configFile, type);
+    SERIALIZER.saveConfig(this, configFile, type, StandardCharsets.UTF_8);
   }
 }
