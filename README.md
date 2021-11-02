@@ -108,9 +108,6 @@ public class MyClass implements Identifiable<UUID> {
 
 ```java
 public class Main {
-    @Autowired
-    private static Service<UUID, MyClass> service;
-    //OR
     private static Service<UUID, MyClass> service = Service.getService(MyClass.class);
     
     
