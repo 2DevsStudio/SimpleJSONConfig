@@ -5,9 +5,9 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ConfigType {
-  JSON(".json"),
-  YAML(".yml");
-
-  private final String extension;
+public enum StoreType {
+    JSON(".json"),
+    YAML(".yml");
+    
+    private final String extension;
 }
