@@ -131,7 +131,7 @@ public class AnnotationProcessor {
             if (!isStored(storedClass)) {
                 CustomLogger.warning("Cannot create a Service for " +
                                      storedClass.getName() +
-                                     ". Class annotated as @Stored does not extends " +
+                                     ". Class annotated as @Stored does not implement " +
                                      Identifiable.class.getName());
                 
                 continue;
@@ -216,8 +216,8 @@ public class AnnotationProcessor {
             }
             if (isStored(type) && isStatic(field.getModifiers()) && field.get(null) == null) {
                 
-                Service config = Service.getService((Class<? extends Identifiable>) type);
-                field.set(null, config);
+                Service service = Service.getService((Class<? extends Identifiable>) type);
+                field.set(null, service);
             }
             
         }

@@ -20,12 +20,7 @@ public class InterfaceAdapter implements JsonSerializer, JsonDeserializer {
         String className = primitive.getAsString();
         Class clazz = getObjectClass(className);
         
-        Object deserializedObject = jsonDeserializationContext.deserialize(jsonObject.get(DATA), clazz);
-        if (deserializedObject instanceof PostProcessable){
-            ((PostProcessable) deserializedObject).gsonPostProcess();
-        }
-        
-        return deserializedObject;
+        return jsonDeserializationContext.deserialize(jsonObject.get(DATA), clazz);
     }
     
     public JsonElement serialize(@NotNull Object jsonElement, Type type, @NotNull JsonSerializationContext jsonSerializationContext) {

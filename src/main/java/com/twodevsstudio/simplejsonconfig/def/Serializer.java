@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
@@ -101,6 +102,7 @@ public class Serializer {
             String json = readJsonString(file, configType);
             T deserializedObject = gson.fromJson(json, token.getType());
             
+            PostProcessable.deepPostProcess(deserializedObject);
             if (deserializedObject instanceof PostProcessable) {
                 ((PostProcessable) deserializedObject).gsonPostProcess();
             }
