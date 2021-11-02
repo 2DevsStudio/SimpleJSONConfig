@@ -26,6 +26,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -242,7 +243,7 @@ public class AnnotationProcessor {
             try {
                 configFile.mkdirs();
                 configFile.createNewFile();
-                Serializer.getInst().saveConfig(config, configFile, Config.getType());
+                Serializer.getInst().saveConfig(config, configFile, Config.getType(), StandardCharsets.UTF_8);
             } catch (IOException ex) {
                 ex.printStackTrace();
                 return;

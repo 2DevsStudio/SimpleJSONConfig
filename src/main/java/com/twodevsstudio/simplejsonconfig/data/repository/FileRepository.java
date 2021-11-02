@@ -2,13 +2,15 @@ package com.twodevsstudio.simplejsonconfig.data.repository;
 
 import com.google.gson.reflect.TypeToken;
 import com.twodevsstudio.simplejsonconfig.data.Identifiable;
-import com.twodevsstudio.simplejsonconfig.def.StoreType;
 import com.twodevsstudio.simplejsonconfig.def.Serializer;
+import com.twodevsstudio.simplejsonconfig.def.StoreType;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -28,12 +30,19 @@ public class FileRepository<ID, T extends Identifiable<ID>> implements Repositor
     @SneakyThrows
     public void save(@NotNull T object) {
         
+        save(object, StandardCharsets.UTF_8);
+    }
+    
+    @Override
+    @SneakyThrows
+    public void save(@NotNull T object, Charset charset) {
+        
         Path file = findFileById(object.getId());
         if (!Files.exists(file)) {
             Files.createFile(file);
         }
         
-        SERIALIZER.saveConfig(object, file.toFile(), storeType);
+        SERIALIZER.saveConfig(object, file.toFile(), storeType, charset);
     }
     
     @Override
