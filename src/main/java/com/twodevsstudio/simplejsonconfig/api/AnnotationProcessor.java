@@ -5,7 +5,6 @@ import com.twodevsstudio.simplejsonconfig.data.Stored;
 import com.twodevsstudio.simplejsonconfig.data.service.FileService;
 import com.twodevsstudio.simplejsonconfig.def.Serializer;
 import com.twodevsstudio.simplejsonconfig.def.StoreType;
-import com.twodevsstudio.simplejsonconfig.def.scanner.SkipRecordsAnnotationScanner;
 import com.twodevsstudio.simplejsonconfig.interfaces.Autowired;
 import com.twodevsstudio.simplejsonconfig.interfaces.Comment;
 import com.twodevsstudio.simplejsonconfig.interfaces.Configuration;
@@ -14,15 +13,11 @@ import lombok.SneakyThrows;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.Utils;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.net.URL;
@@ -34,6 +29,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.reflect.Modifier.isStatic;
+import static org.reflections.scanners.Scanners.*;
 
 public class AnnotationProcessor {
     
@@ -63,7 +59,7 @@ public class AnnotationProcessor {
     @SneakyThrows
     public void processConfiguration(File configsDirectory, Reflections reflections) {
         
-        Set<Class<?>> configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
+        Set<Class<?>> configurationClasses = reflections.get(TypesAnnotated.with(Configuration.class).asClass());
         
         for (Class<?> annotatedClass : configurationClasses) {
             
@@ -126,7 +122,7 @@ public class AnnotationProcessor {
     @SneakyThrows
     public void processStores(Path pluginDirectory, Reflections reflections) {
         
-        Set<Class<?>> storedClasses = reflections.getTypesAnnotatedWith(Stored.class);
+        Set<Class<?>> storedClasses = reflections.get(TypesAnnotated.with(Stored.class).asClass());
         
         for (Class<?> storedClass : storedClasses) {
             if (!isStored(storedClass)) {
@@ -180,31 +176,18 @@ public class AnnotationProcessor {
         }
         
         builder.addUrls(urls);
-        builder.addScanners(new TypeAnnotationsScanner(), new SkipRecordsAnnotationScanner(), new SubTypesScanner());
+        builder.addScanners(TypesAnnotated, FieldsAnnotated, SubTypes);
         
         Reflections reflections = new Reflections(builder);
         
         processAutowired(reflections);
     }
     
-    /**
-     * get all fields annotated with a given annotation <p/>depends on FieldAnnotationsScanner configured
-     */
-    private Set<Field> getFieldsAnnotatedWithExcludingRecords(Reflections reflections,
-                                                              final Class<? extends Annotation> annotation
-    ) {
-        
-        return reflections.getStore()
-                .get(SkipRecordsAnnotationScanner.class, annotation.getName())
-                .stream()
-                .map(annotated -> Utils.getFieldFromString(annotated, reflections.getConfiguration().getClassLoaders()))
-                .collect(Collectors.toSet());
-    }
     
     @SneakyThrows
     public void processAutowired(Reflections reflections) {
         
-        for (Field field : getFieldsAnnotatedWithExcludingRecords(reflections, Autowired.class)) {
+        for (Field field : reflections.get(FieldsAnnotated.with(Autowired.class).as(Field.class))) {
             
             field.setAccessible(true);
             
@@ -288,7 +271,7 @@ public class AnnotationProcessor {
         
         builder.addUrls(ClasspathHelper.forPackage(packageName, classLoaders));
         
-        builder.addScanners(new TypeAnnotationsScanner(), new SkipRecordsAnnotationScanner(), new SubTypesScanner());
+        builder.addScanners(TypesAnnotated, FieldsAnnotated, SubTypes);
         
         return new Reflections(builder);
     }
