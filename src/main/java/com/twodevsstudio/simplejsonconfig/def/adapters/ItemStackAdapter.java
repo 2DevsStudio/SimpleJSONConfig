@@ -1,24 +1,10 @@
 package com.twodevsstudio.simplejsonconfig.def.adapters;
 
 import com.google.common.reflect.TypeToken;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.gson.*;
 import com.google.gson.internal.LinkedTreeMap;
 import com.twodevsstudio.simplejsonconfig.utils.MetaSerializationUtils;
 import com.twodevsstudio.simplejsonconfig.utils.TextUtility;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.attribute.AttributeModifier.Operation;
@@ -30,12 +16,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Type;
+import java.util.*;
+
 public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserializer<ItemStack> {
 
   private static final String CLASS_KEY = "SERIAL-ADAPTER-CLASS-KEY";
 
-  private final Type seriType = new TypeToken<Map<String, Object>>() {
-  }.getType();
+  private final Type seriType = new TypeToken<Map<String, Object>>() {}.getType();
 
   private final String META_TYPE_MEMBER = "meta-type";
   private final String AMOUNT_MEMBER = "amount";
@@ -92,7 +80,7 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
       String key = entry.getKey();
       Object object = entry.getValue();
 
-      //Plain strings with ampersand color codes instead of Text Components
+      // Plain strings with ampersand color codes instead of Text Components
       if (key.equalsIgnoreCase(DISPLAY_NAME_MEMBER)) {
         meta.put(key, TextUtility.textComponentAsString(itemMeta.displayName()));
         continue;
@@ -129,8 +117,7 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
       }
     }
 
-    map.put(CLASS_KEY,
-        ConfigurationSerialization.getAlias(configurationSerializable.getClass()));
+    map.put(CLASS_KEY, ConfigurationSerialization.getAlias(configurationSerializable.getClass()));
     return map;
   }
 
@@ -144,15 +131,17 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
     String displayName = (String) rawMeta.get(DISPLAY_NAME_MEMBER);
     List<String> lore = (List<String>) rawMeta.get(LORE_MEMBER);
 
-    //removing name and lore members to avoid incorrect meta deserialization
+    // removing name and lore members to avoid incorrect meta deserialization
     rawMeta.remove(DISPLAY_NAME_MEMBER);
     rawMeta.remove(LORE_MEMBER);
 
     deserializeMetaTypeData(rawMeta, metaType);
 
-    ItemMeta meta = (ItemMeta) ConfigurationSerialization.deserializeObject(
-        rawMeta,
-        Objects.requireNonNull(ConfigurationSerialization.getClassByAlias("ItemMeta")));
+    ItemMeta meta =
+        (ItemMeta)
+            ConfigurationSerialization.deserializeObject(
+                rawMeta,
+                Objects.requireNonNull(ConfigurationSerialization.getClassByAlias("ItemMeta")));
 
     if (meta != null) {
       if (displayName != null) {
@@ -163,8 +152,8 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
       }
     }
 
-    Map<String, Object> attributes = (Map<String, Object>) rawMeta.getOrDefault(
-        ATTRIBUTES_MEMBER, new HashMap<>());
+    Map<String, Object> attributes =
+        (Map<String, Object>) rawMeta.getOrDefault(ATTRIBUTES_MEMBER, new HashMap<>());
     deserializeAttributes(attributes, meta);
     item.setItemMeta(meta);
   }
@@ -173,8 +162,9 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
 
     if (metaType.equalsIgnoreCase("POTION")) {
 
-      List<PotionEffect> potionEffects = MetaSerializationUtils.deserializePotionEffects(
-          (List<LinkedTreeMap<String, Object>>) rawMeta.get(CUSTOM_EFFECTS_MEMBER));
+      List<PotionEffect> potionEffects =
+          MetaSerializationUtils.deserializePotionEffects(
+              (List<LinkedTreeMap<String, Object>>) rawMeta.get(CUSTOM_EFFECTS_MEMBER));
 
       rawMeta.put(CUSTOM_EFFECTS_MEMBER, potionEffects);
     }
@@ -226,10 +216,8 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
     }
   }
 
-  private void deserializeModifier(Map<String, Object> rawModifier,
-      List<AttributeModifier> modifiers,
-      Set<UUID> uuidsInUse
-  ) {
+  private void deserializeModifier(
+      Map<String, Object> rawModifier, List<AttributeModifier> modifiers, Set<UUID> uuidsInUse) {
 
     UUID modifierUUID = UUID.fromString((String) rawModifier.get("uuid"));
     if (uuidsInUse.contains(modifierUUID)) {
@@ -239,8 +227,7 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
 
     String modifierName = String.valueOf(rawModifier.get("name"));
     double modifierAmount = (double) rawModifier.get(AMOUNT_MEMBER);
-    Operation modifierOperation = Operation.valueOf(
-        String.valueOf(rawModifier.get("operation")));
+    Operation modifierOperation = Operation.valueOf(String.valueOf(rawModifier.get("operation")));
 
     EquipmentSlot modifierSlot = null;
     Object rawSlot = rawModifier.get("slot");
@@ -249,7 +236,7 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
     }
 
     modifiers.add(
-        new AttributeModifier(modifierUUID, modifierName, modifierAmount, modifierOperation,
-            modifierSlot));
+        new AttributeModifier(
+            modifierUUID, modifierName, modifierAmount, modifierOperation, modifierSlot));
   }
 }

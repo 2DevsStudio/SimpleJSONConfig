@@ -1,25 +1,14 @@
 package com.twodevsstudio.simplejsonconfig.api;
 
-import static java.lang.reflect.Modifier.isStatic;
-
+import com.twodevsstudio.simplejsonconfig.data.Identifiable;
+import com.twodevsstudio.simplejsonconfig.data.Stored;
+import com.twodevsstudio.simplejsonconfig.data.service.FileService;
 import com.twodevsstudio.simplejsonconfig.def.Serializer;
 import com.twodevsstudio.simplejsonconfig.def.scanner.SkipRecordsAnnotationScanner;
 import com.twodevsstudio.simplejsonconfig.interfaces.Autowired;
 import com.twodevsstudio.simplejsonconfig.interfaces.Comment;
 import com.twodevsstudio.simplejsonconfig.interfaces.Configuration;
 import com.twodevsstudio.simplejsonconfig.utils.CustomLogger;
-import java.io.File;
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -30,25 +19,96 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.Utils;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.lang.reflect.Modifier.isStatic;
+
 public class AnnotationProcessor {
 
-  public void processAnnotations(@NotNull Plugin plugin, File configsDirectory,
-      Set<Plugin> dependencies) {
+  public static Map<String, Comment> getFieldsComments(Object object) {
+
+    Map<String, Comment> comments = new HashMap<>();
+
+    for (Field declaredField : object.getClass().getDeclaredFields()) {
+      declaredField.setAccessible(true);
+      if (!declaredField.isAnnotationPresent(Comment.class)) {
+        continue;
+      }
+
+      Comment comment = declaredField.getAnnotation(Comment.class);
+      comments.put(declaredField.getName(), comment);
+    }
+
+    return comments;
+  }
+
+  public void processAnnotations(
+      @NotNull Plugin plugin, File configsDirectory, Set<Plugin> dependencies) {
 
     ConfigurationBuilder builder = new ConfigurationBuilder();
 
     builder.addUrls(
-        ClasspathHelper.forPackage(plugin.getClass().getPackage().getName(),
-            getClassLoaders(dependencies,
-                plugin.getClass().getClassLoader(), ClassLoader.getSystemClassLoader(),
-                ClasspathHelper.contextClassLoader(), ClasspathHelper.staticClassLoader())));
+        ClasspathHelper.forPackage(
+            plugin.getClass().getPackage().getName(),
+            getClassLoaders(
+                dependencies,
+                plugin.getClass().getClassLoader(),
+                ClassLoader.getSystemClassLoader(),
+                ClasspathHelper.contextClassLoader(),
+                ClasspathHelper.staticClassLoader())));
 
-    builder.addScanners(new TypeAnnotationsScanner(), new SkipRecordsAnnotationScanner(),
-        new SubTypesScanner());
+    builder.addScanners(
+        new TypeAnnotationsScanner(), new SkipRecordsAnnotationScanner(), new SubTypesScanner());
 
     Reflections reflections = new Reflections(builder);
 
     processConfiguration(configsDirectory, reflections);
+    processStores(plugin.getDataFolder().toPath(), reflections);
+  }
+
+  @SneakyThrows
+  public void processStores(Path pluginDirectory, Reflections reflections) {
+
+    Set<Class<?>> storedClasses = reflections.getTypesAnnotatedWith(Stored.class);
+
+    for (Class<?> storedClass : storedClasses) {
+      if (!isStored(storedClass)) {
+        CustomLogger.warning(
+            "Cannot create a Service for "
+                + storedClass.getName()
+                + ". Class annotated as @Stored does not implement "
+                + Identifiable.class.getName());
+
+        continue;
+      }
+
+      Class<Identifiable> identifiable = (Class<Identifiable>) storedClass;
+
+      Stored annotation = storedClass.getAnnotation(Stored.class);
+      String storeDirectoryPath = annotation.value();
+
+      Path path = Paths.get(pluginDirectory.toString(), storeDirectoryPath);
+      Files.createDirectories(path);
+
+      Service service = new FileService<>(identifiable, path);
+
+      ServiceContainer.SINGLETONS.put(identifiable, service);
+    }
+  }
+
+  public boolean isStored(@NotNull Class<?> clazz) {
+
+    return Identifiable.class.isAssignableFrom(clazz);
   }
 
   @SneakyThrows
@@ -62,10 +122,11 @@ public class AnnotationProcessor {
       String configName = configurationAnnotation.value();
 
       if (!isConfig(annotadedClass)) {
-        CustomLogger.warning("Configuration " +
-            configName +
-            " could not be loaded. Class annotated as @Configuration does not extends " +
-            Config.class.getName());
+        CustomLogger.warning(
+            "Configuration "
+                + configName
+                + " could not be loaded. Class annotated as @Configuration does not extends "
+                + Config.class.getName());
 
         continue;
       }
@@ -94,17 +155,16 @@ public class AnnotationProcessor {
       field.set(config, configFile);
 
       initConfig(config, configFile);
-
     }
-
   }
 
-  private ClassLoader[] getClassLoaders(Set<Plugin> dependencies,
-      ClassLoader... additionalClassLoaders) {
+  private ClassLoader[] getClassLoaders(
+      Set<Plugin> dependencies, ClassLoader... additionalClassLoaders) {
 
-    List<ClassLoader> classLoaders = dependencies.stream()
-        .map(dependency -> dependency.getClass().getClassLoader())
-        .collect(Collectors.toList());
+    List<ClassLoader> classLoaders =
+        dependencies.stream()
+            .map(dependency -> dependency.getClass().getClassLoader())
+            .collect(Collectors.toList());
 
     classLoaders.addAll(List.of(additionalClassLoaders));
 
@@ -115,9 +175,12 @@ public class AnnotationProcessor {
   public void processAutowired(Set<Plugin> dependencies) {
     ConfigurationBuilder builder = new ConfigurationBuilder();
 
-    ClassLoader[] classLoaders = getClassLoaders(dependencies,
-        ClassLoader.getSystemClassLoader(), ClasspathHelper.contextClassLoader(),
-        ClasspathHelper.staticClassLoader());
+    ClassLoader[] classLoaders =
+        getClassLoaders(
+            dependencies,
+            ClassLoader.getSystemClassLoader(),
+            ClasspathHelper.contextClassLoader(),
+            ClasspathHelper.staticClassLoader());
 
     List<URL> urls = new ArrayList<>();
 
@@ -127,8 +190,8 @@ public class AnnotationProcessor {
     }
 
     builder.addUrls(urls);
-    builder.addScanners(new TypeAnnotationsScanner(), new SkipRecordsAnnotationScanner(),
-        new SubTypesScanner());
+    builder.addScanners(
+        new TypeAnnotationsScanner(), new SkipRecordsAnnotationScanner(), new SubTypesScanner());
 
     Reflections reflections = new Reflections(builder);
 
@@ -136,15 +199,21 @@ public class AnnotationProcessor {
   }
 
   /**
-   * get all fields annotated with a given annotation <p/>depends on FieldAnnotationsScanner
-   * configured
+   * get all fields annotated with a given annotation
+   *
+   * <p>depends on FieldAnnotationsScanner configured
    */
-  private Set<Field> getFieldsAnnotatedWithExcludingRecords(Reflections reflections,
-      final Class<? extends Annotation> annotation) {
-    return reflections.getStore().get(SkipRecordsAnnotationScanner.class, annotation.getName())
-        .stream().peek(s -> CustomLogger.log("Autowiring config class to field : " + s))
-        .map(annotated -> Utils.getFieldFromString(annotated,
-            reflections.getConfiguration().getClassLoaders()))
+  private Set<Field> getFieldsAnnotatedWithExcludingRecords(
+      Reflections reflections, final Class<? extends Annotation> annotation) {
+    return reflections
+        .getStore()
+        .get(SkipRecordsAnnotationScanner.class, annotation.getName())
+        .stream()
+        .peek(s -> CustomLogger.log("Autowiring config class to field : " + s))
+        .map(
+            annotated ->
+                Utils.getFieldFromString(
+                    annotated, reflections.getConfiguration().getClassLoaders()))
         .collect(Collectors.toSet());
   }
 
@@ -161,7 +230,6 @@ public class AnnotationProcessor {
         Config config = Config.getConfig((Class<? extends Config>) type);
         field.set(null, config);
       }
-
     }
   }
 
@@ -194,27 +262,8 @@ public class AnnotationProcessor {
         exception.printStackTrace();
         return;
       }
-
     }
 
     ConfigContainer.SINGLETONS.put(config.getClass(), config);
-  }
-
-
-  public static Map<String, Comment> getFieldsComments(Object object) {
-
-    Map<String, Comment> comments = new HashMap<>();
-
-    for (Field declaredField : object.getClass().getDeclaredFields()) {
-      declaredField.setAccessible(true);
-      if (!declaredField.isAnnotationPresent(Comment.class)) {
-        continue;
-      }
-
-      Comment comment = declaredField.getAnnotation(Comment.class);
-      comments.put(declaredField.getName(), comment);
-    }
-
-    return comments;
   }
 }

@@ -7,42 +7,46 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Type;
 
 public class InterfaceAdapter implements JsonSerializer, JsonDeserializer {
-    
-    private static final String CLASSNAME = "CLASSNAME";
-    
-    private static final String DATA = "DATA";
-    
-    public Object deserialize(@NotNull JsonElement jsonElement, Type type,
-                              @NotNull JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-        
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
-        JsonPrimitive primitive = (JsonPrimitive) jsonObject.get(CLASSNAME);
-        String className = primitive.getAsString();
-        Class clazz = getObjectClass(className);
-        
-        Object deserializedObject = jsonDeserializationContext.deserialize(jsonObject.get(DATA), clazz);
-        if (deserializedObject instanceof PostProcessable){
-            ((PostProcessable) deserializedObject).gsonPostProcess();
-        }
-        
-        return deserializedObject;
-    }
-    
-    public JsonElement serialize(@NotNull Object jsonElement, Type type, @NotNull JsonSerializationContext jsonSerializationContext) {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty(CLASSNAME, jsonElement.getClass().getName());
-        jsonObject.add(DATA, jsonSerializationContext.serialize(jsonElement));
 
-        return jsonObject;
+  private static final String CLASSNAME = "CLASSNAME";
+
+  private static final String DATA = "DATA";
+
+  public Object deserialize(
+      @NotNull JsonElement jsonElement,
+      Type type,
+      @NotNull JsonDeserializationContext jsonDeserializationContext)
+      throws JsonParseException {
+
+    JsonObject jsonObject = jsonElement.getAsJsonObject();
+    JsonPrimitive primitive = (JsonPrimitive) jsonObject.get(CLASSNAME);
+    String className = primitive.getAsString();
+    Class clazz = getObjectClass(className);
+
+    Object deserializedObject = jsonDeserializationContext.deserialize(jsonObject.get(DATA), clazz);
+    if (deserializedObject instanceof PostProcessable) {
+      ((PostProcessable) deserializedObject).gsonPostProcess();
     }
-    
-    private Class getObjectClass(String className) {
-        try {
-            return Class.forName(className);
-        } catch (ClassNotFoundException e) {
-            throw new JsonParseException(e.getMessage());
-        }
+
+    return deserializedObject;
+  }
+
+  public JsonElement serialize(
+      @NotNull Object jsonElement,
+      Type type,
+      @NotNull JsonSerializationContext jsonSerializationContext) {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty(CLASSNAME, jsonElement.getClass().getName());
+    jsonObject.add(DATA, jsonSerializationContext.serialize(jsonElement));
+
+    return jsonObject;
+  }
+
+  private Class getObjectClass(String className) {
+    try {
+      return Class.forName(className);
+    } catch (ClassNotFoundException e) {
+      throw new JsonParseException(e.getMessage());
     }
-    
+  }
 }
-

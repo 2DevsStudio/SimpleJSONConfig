@@ -1,15 +1,16 @@
 package com.twodevsstudio.simplejsonconfig;
 
 import com.twodevsstudio.simplejsonconfig.api.AnnotationProcessor;
+import com.twodevsstudio.simplejsonconfig.api.Config;
 import com.twodevsstudio.simplejsonconfig.exceptions.InstanceOverrideException;
 import com.twodevsstudio.simplejsonconfig.utils.CustomLogger;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import lombok.CustomLog;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 
 public enum SimpleJSONConfig {
   INSTANCE;
@@ -33,8 +34,6 @@ public enum SimpleJSONConfig {
   }
 
   public void register(JavaPlugin javaPlugin) {
-
     register(javaPlugin, new File(javaPlugin.getDataFolder() + "/configuration"));
   }
-
 }

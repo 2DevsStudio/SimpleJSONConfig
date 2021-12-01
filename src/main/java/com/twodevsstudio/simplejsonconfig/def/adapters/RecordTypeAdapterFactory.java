@@ -18,9 +18,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Gson support for Java 16+ record types.
- * Taken from https://github.com/google/gson/issues/1794 and adjusted for performance and proper handling of
- * {@link SerializedName} annotations
+ * Gson support for Java 16+ record types. Taken from https://github.com/google/gson/issues/1794 and
+ * adjusted for performance and proper handling of {@link SerializedName} annotations
  */
 public class RecordTypeAdapterFactory implements TypeAdapterFactory {
 
@@ -37,12 +36,13 @@ public class RecordTypeAdapterFactory implements TypeAdapterFactory {
     PRIMITIVE_DEFAULTS.put(boolean.class, false);
   }
 
-  private final Map<RecordComponent, List<String>> recordComponentNameCache = new ConcurrentHashMap<>();
+  private final Map<RecordComponent, List<String>> recordComponentNameCache =
+      new ConcurrentHashMap<>();
 
   /**
-   * Get all names of a record component
-   * If annotated with {@link SerializedName} the list returned will be the primary name first, then any alternative names
-   * Otherwise, the component name will be returned.
+   * Get all names of a record component If annotated with {@link SerializedName} the list returned
+   * will be the primary name first, then any alternative names Otherwise, the component name will
+   * be returned.
    */
   private List<String> getRecordComponentNames(final RecordComponent recordComponent) {
     List<String> inCache = recordComponentNameCache.get(recordComponent);
@@ -51,7 +51,8 @@ public class RecordTypeAdapterFactory implements TypeAdapterFactory {
     }
     List<String> names = new ArrayList<>();
     // The @SerializedName is compiled to be part of the componentName() method
-    // The use of a loop is also deliberate, getAnnotation seemed to return null if Gson's package was relocated
+    // The use of a loop is also deliberate, getAnnotation seemed to return null if Gson's package
+    // was relocated
     SerializedName annotation = null;
     for (Annotation a : recordComponent.getAccessor().getAnnotations()) {
       if (a.annotationType() == SerializedName.class) {
@@ -109,7 +110,6 @@ public class RecordTypeAdapterFactory implements TypeAdapterFactory {
           } else {
             gson.getAdapter(Object.class).read(reader);
           }
-
         }
         reader.endObject();
 
@@ -139,7 +139,12 @@ public class RecordTypeAdapterFactory implements TypeAdapterFactory {
           constructor = clazz.getDeclaredConstructor(argTypes);
           constructor.setAccessible(true);
           return constructor.newInstance(args);
-        } catch (NoSuchMethodException | InstantiationException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+        } catch (NoSuchMethodException
+            | InstantiationException
+            | SecurityException
+            | IllegalAccessException
+            | IllegalArgumentException
+            | InvocationTargetException e) {
           throw new RuntimeException(e);
         }
       }
