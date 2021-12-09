@@ -23,13 +23,23 @@ class StandardService<ID, T extends Identifiable<ID>> implements Service<ID, T> 
   private final Map<ID, T> cache = new ConcurrentHashMap<>();
   private final Repository<ID, T> repository;
 
+  /** @Deprecated use {@link StandardService#saveAndCache(Identifiable)} */
   @Override
+  @Deprecated()
   public void save(T object) {
 
     if (object == null) {
       return;
     }
 
+    addToCache(object);
+    repository.save(object);
+  }
+
+  public void saveAndCache(T object) {
+    if (object == null) {
+      return;
+    }
     addToCache(object);
     repository.save(object);
   }
