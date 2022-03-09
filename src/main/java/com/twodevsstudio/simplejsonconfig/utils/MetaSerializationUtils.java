@@ -2,9 +2,12 @@ package com.twodevsstudio.simplejsonconfig.utils;
 
 import com.google.gson.internal.LinkedTreeMap;
 import lombok.experimental.UtilityClass;
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,5 +39,41 @@ public class MetaSerializationUtils {
         return new PotionEffect(type, duration, amplifier, ambient, particles, icon);
     }
     
+    
+    public static List<FireworkEffect> deserializeFireworkEffects(List<LinkedTreeMap<String, Object>> rawEffects) {
+        
+        return rawEffects.stream()
+                .map(MetaSerializationUtils::deserializeRawFireworkEffect)
+                .collect(Collectors.toList());
+    }
+    
+    public FireworkEffect deserializeRawFireworkEffect(LinkedTreeMap<String, Object> rawEffect) {
+        
+        ArrayList<LinkedTreeMap<String, Object>> colors = (ArrayList<LinkedTreeMap<String, Object>>) rawEffect.get(
+                "colors");
+        ArrayList<LinkedTreeMap<String, Object>> fades = (ArrayList<LinkedTreeMap<String, Object>>) rawEffect.get(
+                "fadeColors");
+    
+        rawEffect.put("colors", deserializeRawColors(colors));
+        rawEffect.put("fadeColors", deserializeRawColors(fades));
+        
+        return (FireworkEffect) FireworkEffect.deserialize(rawEffect);
+    }
+    
+    public List<Color> deserializeRawColors(List<LinkedTreeMap<String, Object>> rawColors) {
+        
+        return rawColors.stream().map(MetaSerializationUtils::deserializeRawColor).collect(Collectors.toList());
+    }
+    
+    public Color deserializeRawColor(LinkedTreeMap<String, Object> rawColor) {
+        final Integer red = (Integer) rawColor.remove("red");
+        final Integer green = (Integer) rawColor.remove("green");
+        final Integer blue = (Integer) rawColor.remove("blue");
+        rawColor.put("RED", Math.abs(red));
+        rawColor.put("GREEN", Math.abs(green));
+        rawColor.put("BLUE", Math.abs((blue)));
+        
+        return Color.deserialize(rawColor);
+    }
 }
 

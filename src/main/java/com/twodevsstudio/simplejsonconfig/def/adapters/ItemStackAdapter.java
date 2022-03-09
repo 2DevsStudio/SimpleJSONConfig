@@ -5,6 +5,8 @@ import com.google.gson.*;
 import com.google.gson.internal.LinkedTreeMap;
 import com.twodevsstudio.simplejsonconfig.utils.MetaSerializationUtils;
 import com.twodevsstudio.simplejsonconfig.utils.Utils;
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.attribute.AttributeModifier.Operation;
@@ -33,6 +35,11 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
     private final String DISPLAY_NAME_MEMBER = "display-name";
     private final String LORE_MEMBER = "lore";
     private final String CUSTOM_EFFECTS_MEMBER = "custom-effects";
+    private final String CUSTOM_COLOR_MEMBER = "custom-color";
+    private final String FIREWORK_EFFECTS_MEMBER = "firework-effects";
+    private final String FIREWORK_EFFECT_MEMBER = "firework-effect";
+    private final String COLOR_MEMBER = "color";
+    private final String DISPLAY_MAP_COLOR_MEMBER = "display-map-color";
     
     @Override
     public JsonElement serialize(ItemStack item, Type typeOfSrc, JsonSerializationContext context) {
@@ -136,7 +143,7 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
         rawMeta.remove(LORE_MEMBER);
         
         deserializeMetaTypeData(rawMeta, metaType);
-    
+        
         ItemMeta meta = (ItemMeta) ConfigurationSerialization.deserializeObject(
                 rawMeta, Objects.requireNonNull(ConfigurationSerialization.getClassByAlias("ItemMeta")));
         
@@ -158,8 +165,36 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
             
             List<PotionEffect> potionEffects = MetaSerializationUtils.deserializePotionEffects(
                     (List<LinkedTreeMap<String, Object>>) rawMeta.get(CUSTOM_EFFECTS_MEMBER));
-            
+            Color customColor = MetaSerializationUtils.deserializeRawColor(
+                    (LinkedTreeMap<String, Object>) rawMeta.get(CUSTOM_COLOR_MEMBER));
+    
             rawMeta.put(CUSTOM_EFFECTS_MEMBER, potionEffects);
+            rawMeta.put(CUSTOM_COLOR_MEMBER, customColor);
+            
+        } else if (metaType.equalsIgnoreCase("FIREWORK")) {
+            
+            List<FireworkEffect> fireworkEffects = MetaSerializationUtils.deserializeFireworkEffects(
+                    (List<LinkedTreeMap<String, Object>>) rawMeta.get(FIREWORK_EFFECTS_MEMBER));
+            
+            rawMeta.put(FIREWORK_EFFECTS_MEMBER, fireworkEffects);
+        } else if (metaType.equalsIgnoreCase("FIREWORK_EFFECT")) {
+            
+            FireworkEffect fireworkEffect = MetaSerializationUtils.deserializeRawFireworkEffect(
+                    (LinkedTreeMap<String, Object>) rawMeta.get(FIREWORK_EFFECT_MEMBER));
+            
+            rawMeta.put(FIREWORK_EFFECT_MEMBER, fireworkEffect);
+        } else if (metaType.equalsIgnoreCase("LEATHER_ARMOR")) {
+            
+            Color color = MetaSerializationUtils.deserializeRawColor(
+                    (LinkedTreeMap<String, Object>) rawMeta.get(COLOR_MEMBER));
+            
+            rawMeta.put(COLOR_MEMBER, color);
+        } else if (metaType.equalsIgnoreCase("MAP")) {
+            
+            Color displayMapColor = MetaSerializationUtils.deserializeRawColor(
+                    (LinkedTreeMap<String, Object>) rawMeta.get(DISPLAY_MAP_COLOR_MEMBER));
+            
+            rawMeta.put(DISPLAY_MAP_COLOR_MEMBER, displayMapColor);
         }
     }
     
