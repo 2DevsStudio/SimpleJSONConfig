@@ -66,9 +66,9 @@ public class MetaSerializationUtils {
     }
     
     public Color deserializeRawColor(LinkedTreeMap<String, Object> rawColor) {
-        final Integer red = (Integer) rawColor.remove("red");
-        final Integer green = (Integer) rawColor.remove("green");
-        final Integer blue = (Integer) rawColor.remove("blue");
+        final int red = ((Double) rawColor.remove("red")).intValue();
+        final int green = ((Double) rawColor.remove("green")).intValue();
+        final int blue = ((Double) rawColor.remove("blue")).intValue();
         rawColor.put("RED", Math.abs(red));
         rawColor.put("GREEN", Math.abs(green));
         rawColor.put("BLUE", Math.abs((blue)));
