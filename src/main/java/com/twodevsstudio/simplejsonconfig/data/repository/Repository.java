@@ -9,8 +9,6 @@ public interface Repository<ID, T extends Identifiable<ID>> {
     
     void save(T object);
     
-    void save(T object, Charset charset);
-    
     T findById(ID id);
     
     Collection<T> findAll();
