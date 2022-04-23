@@ -7,6 +7,7 @@ import org.apache.commons.collections.map.LRUMap;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Data
 public class InMemoryCache<K, V> {
@@ -114,7 +115,10 @@ public class InMemoryCache<K, V> {
     public Collection<V> values() {
         
         synchronized (cache) {
-            return cache.values();
+            return ((Collection<CacheObject>) cache.values())
+                    .stream()
+                    .map(cacheObject -> cacheObject.value)
+                    .collect(Collectors.toList());
         }
     }
     
