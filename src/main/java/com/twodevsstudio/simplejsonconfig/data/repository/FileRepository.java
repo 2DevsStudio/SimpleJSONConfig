@@ -63,7 +63,7 @@ public class FileRepository<ID, T extends Identifiable<ID>> implements Repositor
         
         try (Stream<Path> walk = Files.walk(dataDirectory)) {
             return walk.filter(path -> !Files.isDirectory(path))
-                    .filter(path -> path.endsWith(storeType.getExtension()))
+                    .filter(path -> path.toString().endsWith(storeType.getExtension()))
                     .map(path -> SERIALIZER.loadConfig(typeToken, path.toFile()))
                     .collect(Collectors.toList());
         }
