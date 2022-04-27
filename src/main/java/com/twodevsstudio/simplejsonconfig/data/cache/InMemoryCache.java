@@ -2,8 +2,8 @@ package com.twodevsstudio.simplejsonconfig.data.cache;
 
 import com.twodevsstudio.simplejsonconfig.GlobalCacheConfiguration;
 import lombok.Data;
-import org.apache.commons.collections.MapIterator;
-import org.apache.commons.collections.map.LRUMap;
+import org.apache.commons.collections4.MapIterator;
+import org.apache.commons.collections4.map.LRUMap;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class InMemoryCache<K, V> {
     private final long entryLifespanMillis;
     private final long scanIntervalMillis;
-    private final LRUMap cache;
+    private final LRUMap<K, CacheObject> cache;
     
     public InMemoryCache(GlobalCacheConfiguration cacheConfiguration) {
         
@@ -26,7 +26,7 @@ public class InMemoryCache<K, V> {
         
         this.entryLifespanMillis = entryLifespanSeconds * 1000;
         this.scanIntervalMillis = scanIntervalSeconds * 1000;
-        cache = new LRUMap(maxSize);
+        cache = new LRUMap<>(maxSize);
         
         if (entryLifespanMillis <= 0 || scanIntervalSeconds <= 0) {
             return;
@@ -53,15 +53,15 @@ public class InMemoryCache<K, V> {
         ArrayList<K> deleteKey;
         
         synchronized (cache) {
-            MapIterator iterator = cache.mapIterator();
+            MapIterator<K, CacheObject> iterator = cache.mapIterator();
             
             deleteKey = new ArrayList<>((cache.size() / 2) + 1);
             K key;
             CacheObject cacheObject;
             
             while (iterator.hasNext()) {
-                key = (K) iterator.next();
-                cacheObject = (CacheObject) iterator.getValue();
+                key = iterator.next();
+                cacheObject = iterator.getValue();
                 
                 if (cacheObject != null && (now > (entryLifespanMillis + cacheObject.lastAccessed))) {
                     deleteKey.add(key);
@@ -87,8 +87,7 @@ public class InMemoryCache<K, V> {
     public V get(K key) {
         
         synchronized (cache) {
-            CacheObject cacheObject;
-            cacheObject = (CacheObject) cache.get(key);
+            CacheObject cacheObject = cache.get(key);
             
             if (cacheObject == null) {
                 return null;
@@ -115,10 +114,7 @@ public class InMemoryCache<K, V> {
     public Collection<V> values() {
         
         synchronized (cache) {
-            return ((Collection<CacheObject>) cache.values())
-                    .stream()
-                    .map(cacheObject -> cacheObject.value)
-                    .collect(Collectors.toList());
+            return cache.values().stream().map(cacheObject -> cacheObject.value).collect(Collectors.toList());
         }
     }
     
