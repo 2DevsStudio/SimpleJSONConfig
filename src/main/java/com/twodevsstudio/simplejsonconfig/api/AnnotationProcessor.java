@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 import static java.lang.reflect.Modifier.isStatic;
 import static org.reflections.scanners.Scanners.*;
 
-@Log
 public class AnnotationProcessor {
     
     public void processAnnotations(@NotNull Plugin plugin, File configsDirectory, Set<Plugin> dependencies) {
@@ -253,25 +252,30 @@ public class AnnotationProcessor {
             if (runValidation) {
                 serializer.toBuilder().registerTypeHierarchyAdapter(Config.class, new FieldValidator()).build();
             }
-            
+    
             try {
                 config.reload();
             } catch (ConfigDeprecatedException exception) {
                 serializer.toBuilder().unregisterTypeHierarchyAdapter(Config.class, FieldValidator.class).build();
-                
+        
                 if (!annotation.enableConfigAutoUpdates()) {
-                    log.warning(exception.getMessage());
+                    CustomLogger.warning(exception.getMessage());
+                    config.reload();
                 } else {
                     handleOutdatedConfigUpdate(config, configFile, annotation, exception);
                     return;
                 }
-                
+        
+            } catch (UnsupportedOperationException ignored) {
+                serializer.toBuilder().unregisterTypeHierarchyAdapter(Config.class, FieldValidator.class).build();
+                config.reload();
             } catch (Exception exception) {
                 CustomLogger.warning(config.getClass().getName() + ": Config file is corrupted");
                 exception.printStackTrace();
                 return;
             }
-            
+    
+    
         }
         
         ConfigContainer.SINGLETONS.put(config.getClass(), config);
@@ -306,9 +310,14 @@ public class AnnotationProcessor {
         }
         
         Config mergedConfig = serializer.getGson().fromJson(sourceJson, configClass);
+        
+        Field configFileField = mergedConfig.getClass().getSuperclass().getDeclaredField("configFile");
+        configFileField.setAccessible(true);
+        configFileField.set(mergedConfig, configFile);
+        
         mergedConfig.save();
         initConfig(config, configFile, annotation, false);
-        log.info(String.format(
+        CustomLogger.log(String.format(
                 "Config \"%s\" has been updated! %nMissing fields added: %s %nRedundant fields removed: %s",
                 configFile.getName(), exception.getMissingFields(), exception.getRedundantFields()
         ));
