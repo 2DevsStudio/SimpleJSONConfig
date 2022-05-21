@@ -17,10 +17,10 @@ public final class SharedGsonBuilder {
     
     private final Serializer targetSerializer;
     
-    private Map<Class<?>, List<Object>> typeHierarchyAdapters = new ConcurrentHashMap<>();
-    private Map<Type, List<Object>> typeAdapters = new ConcurrentHashMap<>();
-    private List<ExclusionStrategy> deserializationExclusionStrategies = new ArrayList<>();
-    private List<ExclusionStrategy> serializationExclusionStrategies = new ArrayList<>();
+    private final Map<Class<?>, List<Object>> typeHierarchyAdapters = new ConcurrentHashMap<>();
+    private final Map<Type, List<Object>> typeAdapters = new ConcurrentHashMap<>();
+    private final List<ExclusionStrategy> deserializationExclusionStrategies = new ArrayList<>();
+    private final List<ExclusionStrategy> serializationExclusionStrategies = new ArrayList<>();
     
     public SharedGsonBuilder registerTypeHierarchyAdapter(Class<?> baseType, Object typeAdapter) {
         

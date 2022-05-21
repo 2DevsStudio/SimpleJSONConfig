@@ -6,8 +6,6 @@ import java.lang.reflect.Field;
 
 public interface PostProcessable {
     
-    void gsonPostProcess();
-    
     @SneakyThrows
     static void deepPostProcess(Object object) {
         
@@ -40,5 +38,7 @@ public interface PostProcessable {
         
         postProcessable.gsonPostProcess();
     }
+    
+    void gsonPostProcess();
     
 }

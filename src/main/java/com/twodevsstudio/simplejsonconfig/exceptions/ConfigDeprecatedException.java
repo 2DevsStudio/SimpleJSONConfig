@@ -11,8 +11,11 @@ public class ConfigDeprecatedException extends RuntimeException {
     private final List<String> redundantFields;
     private final JsonElement sourceJson;
     
-    public ConfigDeprecatedException(String configName, List<String> missingFields, List<String> redundantFields,
-                                     JsonElement sourceJson) {
+    public ConfigDeprecatedException(String configName,
+                                     List<String> missingFields,
+                                     List<String> redundantFields,
+                                     JsonElement sourceJson
+    ) {
         
         super(String.format("%nYour config \"%s\" is outdated!%n\tMissing fields: %s%n\tRedundant fields: %s",
                 configName, missingFields, redundantFields

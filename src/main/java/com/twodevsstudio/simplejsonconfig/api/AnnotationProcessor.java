@@ -15,7 +15,6 @@ import com.twodevsstudio.simplejsonconfig.interfaces.Comment;
 import com.twodevsstudio.simplejsonconfig.interfaces.Configuration;
 import com.twodevsstudio.simplejsonconfig.utils.CustomLogger;
 import lombok.SneakyThrows;
-import lombok.extern.java.Log;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.reflections.Reflections;
@@ -38,6 +37,23 @@ import static java.lang.reflect.Modifier.isStatic;
 import static org.reflections.scanners.Scanners.*;
 
 public class AnnotationProcessor {
+    
+    public static Map<String, Comment> getFieldsComments(Object object) {
+        
+        Map<String, Comment> comments = new HashMap<>();
+        
+        for (Field declaredField : object.getClass().getDeclaredFields()) {
+            declaredField.setAccessible(true);
+            if (!declaredField.isAnnotationPresent(Comment.class)) {
+                continue;
+            }
+            
+            Comment comment = declaredField.getAnnotation(Comment.class);
+            comments.put(declaredField.getName(), comment);
+        }
+        
+        return comments;
+    }
     
     public void processAnnotations(@NotNull Plugin plugin, File configsDirectory, Set<Plugin> dependencies) {
         
@@ -124,7 +140,6 @@ public class AnnotationProcessor {
         processStores(pluginDirectory, reflections);
     }
     
-    
     @SneakyThrows
     public void processStores(Path pluginDirectory, Reflections reflections) {
         
@@ -193,7 +208,6 @@ public class AnnotationProcessor {
         processAutowired(reflections);
     }
     
-    
     @SneakyThrows
     public void processAutowired(Reflections reflections) {
         
@@ -252,12 +266,12 @@ public class AnnotationProcessor {
             if (runValidation) {
                 serializer.toBuilder().registerTypeHierarchyAdapter(Config.class, new FieldValidator()).build();
             }
-    
+            
             try {
                 config.reload();
             } catch (ConfigDeprecatedException exception) {
                 serializer.toBuilder().unregisterTypeHierarchyAdapter(Config.class, FieldValidator.class).build();
-        
+                
                 if (!annotation.enableConfigAutoUpdates()) {
                     CustomLogger.warning(exception.getMessage());
                     config.reload();
@@ -265,7 +279,7 @@ public class AnnotationProcessor {
                     handleOutdatedConfigUpdate(config, configFile, annotation, exception);
                     return;
                 }
-        
+                
             } catch (UnsupportedOperationException ignored) {
                 serializer.toBuilder().unregisterTypeHierarchyAdapter(Config.class, FieldValidator.class).build();
                 config.reload();
@@ -274,8 +288,8 @@ public class AnnotationProcessor {
                 exception.printStackTrace();
                 return;
             }
-    
-    
+            
+            
         }
         
         ConfigContainer.SINGLETONS.put(config.getClass(), config);
@@ -321,24 +335,6 @@ public class AnnotationProcessor {
                 "Config \"%s\" has been updated! %nMissing fields added: %s %nRedundant fields removed: %s",
                 configFile.getName(), exception.getMissingFields(), exception.getRedundantFields()
         ));
-    }
-    
-    
-    public static Map<String, Comment> getFieldsComments(Object object) {
-        
-        Map<String, Comment> comments = new HashMap<>();
-        
-        for (Field declaredField : object.getClass().getDeclaredFields()) {
-            declaredField.setAccessible(true);
-            if (!declaredField.isAnnotationPresent(Comment.class)) {
-                continue;
-            }
-            
-            Comment comment = declaredField.getAnnotation(Comment.class);
-            comments.put(declaredField.getName(), comment);
-        }
-        
-        return comments;
     }
     
     private Reflections buildReflections(String packageName, ClassLoader[] classLoaders) {

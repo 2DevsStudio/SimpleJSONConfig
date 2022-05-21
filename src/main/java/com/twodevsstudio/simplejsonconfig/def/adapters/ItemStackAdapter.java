@@ -167,7 +167,7 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
                     (List<LinkedTreeMap<String, Object>>) rawMeta.get(CUSTOM_EFFECTS_MEMBER));
             Color customColor = MetaSerializationUtils.deserializeRawColor(
                     (LinkedTreeMap<String, Object>) rawMeta.get(CUSTOM_COLOR_MEMBER));
-    
+            
             rawMeta.put(CUSTOM_EFFECTS_MEMBER, potionEffects);
             rawMeta.put(CUSTOM_COLOR_MEMBER, customColor);
             

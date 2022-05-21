@@ -64,6 +64,17 @@ public class Serializer {
         this.jsonBuilder.build();
     }
     
+    /**
+     * Get the instance of {@code Serializer}
+     *
+     * @return The instance of {@code Serializer}
+     */
+    @Contract( pure = true )
+    public static Serializer getInst() {
+        
+        return Serializer.SingletonHelper.INSTANCE;
+    }
+    
     public SharedGsonBuilder toBuilder() {
         
         return this.jsonBuilder;
@@ -177,17 +188,6 @@ public class Serializer {
     public <T> T loadConfig(Class<T> clazz, @NotNull File file, StoreType type) {
         
         return loadConfig(TypeToken.get(clazz), file, type);
-    }
-    
-    /**
-     * Get the instance of {@code Serializer}
-     *
-     * @return The instance of {@code Serializer}
-     */
-    @Contract( pure = true )
-    public static Serializer getInst() {
-        
-        return Serializer.SingletonHelper.INSTANCE;
     }
     
     private static class SingletonHelper {
