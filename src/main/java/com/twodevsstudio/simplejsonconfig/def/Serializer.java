@@ -7,21 +7,28 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.twodevsstudio.simplejsonconfig.api.CommentProcessor;
+import com.twodevsstudio.simplejsonconfig.def.adapters.*;
+import com.twodevsstudio.simplejsonconfig.def.strategies.SuperclassExclusionStrategy;
 import com.twodevsstudio.simplejsonconfig.interfaces.PostProcessable;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import org.bukkit.World;
+import org.bukkit.block.BlockState;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
-import java.lang.reflect.Field;
+import java.lang.ref.Reference;
 import java.nio.charset.Charset;
 import java.nio.charset.MalformedInputException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 
 @Getter
@@ -29,7 +36,8 @@ public class Serializer {
     private final CommentProcessor commentProcessor = new CommentProcessor();
     private final JsonParser jsonParser = new JsonParser();
     
-    @Setter( onParam_ = @NotNull )
+    private final SharedGsonBuilder jsonBuilder;
+    @Setter( onParam_ = @NotNull, value = AccessLevel.PROTECTED )
     private Gson gson;
     
     /**
@@ -43,7 +51,22 @@ public class Serializer {
      */
     private Serializer() {
         
-        this.gson = new DefaultGsonBuilder().getGsonBuilder().create();
+        this.jsonBuilder = new SharedGsonBuilder(this);
+        jsonBuilder.registerTypeHierarchyAdapter(Class.class, new ClassAdapter())
+                .registerTypeHierarchyAdapter(ChronoUnit.class, new ChronoUnitAdapter())
+                .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackAdapter())
+                .registerTypeHierarchyAdapter(World.class, new WorldAdapter())
+                .registerTypeHierarchyAdapter(Reference.class, new ReferenceAdapter())
+                .registerTypeAdapter(BlockState.class, new InterfaceAdapter())
+                .addDeserializationExclusionStrategy(new SuperclassExclusionStrategy())
+                .addSerializationExclusionStrategy(new SuperclassExclusionStrategy());
+        
+        this.jsonBuilder.build();
+    }
+    
+    public SharedGsonBuilder toBuilder() {
+        
+        return this.jsonBuilder;
     }
     
     @SneakyThrows
@@ -75,8 +98,7 @@ public class Serializer {
     }
     
     @SneakyThrows
-    public void saveConfig(
-            Object object, @NotNull File file, StoreType storeType, Charset encoding) {
+    public void saveConfig(Object object, @NotNull File file, StoreType storeType, Charset encoding) {
         
         try {
             if (!file.createNewFile()) {
@@ -88,13 +110,9 @@ public class Serializer {
             }
             commentProcessor.includeComments(file, object);
         } catch (MalformedInputException exception) {
-            saveConfig(
-                    object,
-                    file,
-                    storeType,
-                    encoding == StandardCharsets.US_ASCII
-                    ? StandardCharsets.ISO_8859_1
-                    : StandardCharsets.US_ASCII);
+            saveConfig(object, file, storeType,
+                    encoding == StandardCharsets.US_ASCII ? StandardCharsets.ISO_8859_1 : StandardCharsets.US_ASCII
+            );
         }
     }
     

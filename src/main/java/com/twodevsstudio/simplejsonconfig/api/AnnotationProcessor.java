@@ -1,15 +1,21 @@
 package com.twodevsstudio.simplejsonconfig.api;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.twodevsstudio.simplejsonconfig.data.Identifiable;
 import com.twodevsstudio.simplejsonconfig.data.Stored;
+import com.twodevsstudio.simplejsonconfig.data.cache.InMemoryCache;
 import com.twodevsstudio.simplejsonconfig.data.service.FileService;
 import com.twodevsstudio.simplejsonconfig.def.Serializer;
 import com.twodevsstudio.simplejsonconfig.def.StoreType;
+import com.twodevsstudio.simplejsonconfig.def.adapters.FieldValidator;
+import com.twodevsstudio.simplejsonconfig.exceptions.ConfigDeprecatedException;
 import com.twodevsstudio.simplejsonconfig.interfaces.Autowired;
 import com.twodevsstudio.simplejsonconfig.interfaces.Comment;
 import com.twodevsstudio.simplejsonconfig.interfaces.Configuration;
 import com.twodevsstudio.simplejsonconfig.utils.CustomLogger;
 import lombok.SneakyThrows;
+import lombok.extern.java.Log;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.reflections.Reflections;
@@ -31,6 +37,7 @@ import java.util.stream.Collectors;
 import static java.lang.reflect.Modifier.isStatic;
 import static org.reflections.scanners.Scanners.*;
 
+@Log
 public class AnnotationProcessor {
     
     public void processAnnotations(@NotNull Plugin plugin, File configsDirectory, Set<Plugin> dependencies) {
@@ -101,7 +108,7 @@ public class AnnotationProcessor {
             field.setAccessible(true);
             field.set(config, configFile);
             
-            initConfig(config, configFile);
+            initConfig(config, configFile, configurationAnnotation, true);
             
         }
         
@@ -143,7 +150,11 @@ public class AnnotationProcessor {
             Path path = Paths.get(pluginDirectory.toString(), storeDirectoryPath);
             Files.createDirectories(path);
             
-            Service service = new FileService<>(identifiable, path, storeType);
+            InMemoryCache cache = new InMemoryCache(annotation.cacheLifespanSeconds(),
+                    annotation.cacheScanIntervalSeconds(), annotation.cacheMaxSize()
+            );
+            
+            Service service = new FileService<>(identifiable, path, storeType, cache);
             
             ServiceContainer.SINGLETONS.put(identifiable, service);
         }
@@ -217,16 +228,21 @@ public class AnnotationProcessor {
         return Identifiable.class.isAssignableFrom(clazz);
     }
     
-    private void initConfig(@NotNull Config config, @NotNull File configFile) {
+    private void initConfig(@NotNull Config config,
+                            @NotNull File configFile,
+                            @NotNull Configuration annotation,
+                            boolean runValidation
+    ) {
         
         config.configFile = configFile;
         
+        Serializer serializer = Serializer.getInst();
         if (!configFile.exists()) {
             
             try {
                 configFile.mkdirs();
                 configFile.createNewFile();
-                Serializer.getInst().saveConfig(config, configFile, Config.getType(), StandardCharsets.UTF_8);
+                serializer.saveConfig(config, configFile, Config.getType(), StandardCharsets.UTF_8);
             } catch (IOException ex) {
                 ex.printStackTrace();
                 return;
@@ -234,8 +250,22 @@ public class AnnotationProcessor {
             
         } else {
             
+            if (runValidation) {
+                serializer.toBuilder().registerTypeHierarchyAdapter(Config.class, new FieldValidator()).build();
+            }
+            
             try {
                 config.reload();
+            } catch (ConfigDeprecatedException exception) {
+                serializer.toBuilder().unregisterTypeHierarchyAdapter(Config.class, FieldValidator.class).build();
+                
+                if (!annotation.enableConfigAutoUpdates()) {
+                    log.warning(exception.getMessage());
+                } else {
+                    handleOutdatedConfigUpdate(config, configFile, annotation, exception);
+                    return;
+                }
+                
             } catch (Exception exception) {
                 CustomLogger.warning(config.getClass().getName() + ": Config file is corrupted");
                 exception.printStackTrace();
@@ -245,6 +275,43 @@ public class AnnotationProcessor {
         }
         
         ConfigContainer.SINGLETONS.put(config.getClass(), config);
+    }
+    
+    @SneakyThrows
+    private void handleOutdatedConfigUpdate(@NotNull Config config,
+                                            @NotNull File configFile,
+                                            @NotNull Configuration annotation,
+                                            ConfigDeprecatedException exception
+    ) {
+        
+        JsonObject sourceJson = exception.getSourceJson().getAsJsonObject();
+        exception.getRedundantFields().forEach(sourceJson::remove);
+        
+        Class<? extends @NotNull Config> configClass = config.getClass();
+        
+        List<String> missingFields = exception.getMissingFields();
+        
+        Serializer serializer = Serializer.getInst();
+        for (Field declaredField : configClass.getDeclaredFields()) {
+            
+            declaredField.setAccessible(true);
+            if (!missingFields.contains(declaredField.getName())) {
+                continue;
+            }
+            
+            Object fieldValue = declaredField.get(config);
+            JsonElement jsonElement = serializer.getGson().toJsonTree(fieldValue);
+            sourceJson.add(declaredField.getName(), jsonElement);
+            
+        }
+        
+        Config mergedConfig = serializer.getGson().fromJson(sourceJson, configClass);
+        mergedConfig.save();
+        initConfig(config, configFile, annotation, false);
+        log.info(String.format(
+                "Config \"%s\" has been updated! %nMissing fields added: %s %nRedundant fields removed: %s",
+                configFile.getName(), exception.getMissingFields(), exception.getRedundantFields()
+        ));
     }
     
     
