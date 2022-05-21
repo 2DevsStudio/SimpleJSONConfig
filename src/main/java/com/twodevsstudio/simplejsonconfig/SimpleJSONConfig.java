@@ -20,7 +20,6 @@ public enum SimpleJSONConfig {
     @Getter
     private final AnnotationProcessor annotationProcessor = new AnnotationProcessor();
     private final Map<Plugin, File> plugins = new HashMap<>();
-    private final GlobalCacheConfiguration cacheConfiguration = new GlobalCacheConfiguration();
     
     public void register(JavaPlugin javaPlugin, File configsDirectory) {
         
@@ -67,9 +66,5 @@ public enum SimpleJSONConfig {
     public void scanStoredTypes(File directory, Class<?> startingPoint) {
         
         annotationProcessor.processStores(directory.toPath(), startingPoint, plugins.keySet());
-    }
-    
-    public GlobalCacheConfiguration configureDefaultCache(){
-        return this.cacheConfiguration;
     }
 }

@@ -1,6 +1,5 @@
 package com.twodevsstudio.simplejsonconfig.data.cache;
 
-import com.twodevsstudio.simplejsonconfig.GlobalCacheConfiguration;
 import lombok.Data;
 import org.apache.commons.collections4.MapIterator;
 import org.apache.commons.collections4.map.LRUMap;
@@ -14,13 +13,6 @@ public class InMemoryCache<K, V> {
     private final long entryLifespanMillis;
     private final long scanIntervalMillis;
     private final LRUMap<K, CacheObject> cache;
-    
-    public InMemoryCache(GlobalCacheConfiguration cacheConfiguration) {
-        
-        this(cacheConfiguration.entryLifespanSeconds(), cacheConfiguration.scanIntervalSeconds(),
-                cacheConfiguration.maxSize()
-        );
-    }
     
     public InMemoryCache(long entryLifespanSeconds, final long scanIntervalSeconds, int maxSize) {
         

@@ -1,6 +1,5 @@
 package com.twodevsstudio.simplejsonconfig.data.service;
 
-import com.twodevsstudio.simplejsonconfig.SimpleJSONConfig;
 import com.twodevsstudio.simplejsonconfig.api.Service;
 import com.twodevsstudio.simplejsonconfig.data.Identifiable;
 import com.twodevsstudio.simplejsonconfig.data.cache.InMemoryCache;
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor( access = AccessLevel.PROTECTED )
 class StandardService<ID, T extends Identifiable<ID>> implements Service<ID, T> {
     
-    private final InMemoryCache<ID, T> cache = new InMemoryCache<>(SimpleJSONConfig.INSTANCE.configureDefaultCache());
+    private final InMemoryCache<ID, T> cache;
     private final Repository<ID, T> repository;
     
     @Override
