@@ -134,14 +134,15 @@ Maven:
 
 <repositories>
     <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
+      <id>com.2devsstudio-latest</id>
+      <name>2DevsStudio Repository</name>
+      <url>https://repo.2devsstudio.com/latest</url>
     </repository>
 </repositories>
 
 <dependecies>
     <dependency>
-        <groupId>com.github.2DevsStudio</groupId>
+        <groupId>com.twodevsstudio</groupId>
         <artifactId>SimpleJSONConfig</artifactId>
         <version>1.2</version>
         <scope>compile</scope> <!-- Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing -->
