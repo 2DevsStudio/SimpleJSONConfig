@@ -108,11 +108,10 @@ public class MyClass implements Identifiable<UUID> {
 
 ```java
 public class Main {
+
     private static Service<UUID, MyClass> service = Service.getService(MyClass.class);
     
-    
     public void foo() {
-        
         MyClass myClass = new MyClass(UUID.randomUUID());
     
         // Serialize your object to the file in specified directory
@@ -135,19 +134,20 @@ Maven:
 
 <repositories>
     <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
+      <id>com.2devsstudio-latest</id>
+      <name>2DevsStudio Repository</name>
+      <url>https://repo.2devsstudio.com/latest</url>
     </repository>
 </repositories>
 
 <dependecies>
-<dependency>
-    <groupId>com.github.2DevsStudio</groupId>
-    <artifactId>SimpleJSONConfig</artifactId>
-    <version>1.2</version>
-    <scope>compile</scope> <!-- Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing -->
-    <scope>provided</scope> <!-- Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing -->
-</dependency>
+    <dependency>
+        <groupId>com.twodevsstudio</groupId>
+        <artifactId>SimpleJSONConfig</artifactId>
+        <version>1.2</version>
+        <scope>compile</scope> <!-- Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing -->
+        <scope>provided</scope> <!-- Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing -->
+    </dependency>
 </dependecies>
 ```
 
@@ -175,7 +175,6 @@ public class MyConfig extends Config {
     private transient Player cachedPlayer; //<- this field is not included in the config
     
     public Player getCachedPlayer() {
-        
         if (cachedPlayer == null) {
             this.cachedPlayer = Bukkit.getPlayer(playerName);
         }
@@ -198,13 +197,11 @@ public class MyClass {
     private int anInt = 10;
     
     public void save(File targetFile) {
-        
         SERIALIZER.saveConfig(this, targetFile);
         SERIALIZER.saveConfig(this, targetFile, StoreType.YAML); //You can also specify type of serialization
     }
     
     public static MyClass load(File sourceFile) {
-        
         return SERIALIZER.loadConfig(MyClass.class, sourceFile);
         //If you previously serialized as YAML you have to remember to specify type on loading
         return SERIALIZER.loadConfig(MyClass.class, sourceFile, StoreType.YAML);
@@ -229,7 +226,6 @@ public class MyClass {
     public static MyConfig config;
     
     public void foo() {
-        
         config.setJoinMessage("Better Join Message");
         config.save(); //Save config file
     }
@@ -240,7 +236,6 @@ public class ReloadCommand implements CommandExecutor {
     
     @Override
     public boolean onCommand(CommandSender sender, Command command, String name, String[] args) {
-        
         Config.getConfig(MyConfig.class).reload(); // Reload single config
         Config.reloadAll(); //Reload all configs
         return true;

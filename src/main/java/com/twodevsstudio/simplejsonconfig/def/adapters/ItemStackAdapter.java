@@ -121,6 +121,8 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
                 Map<String, Object> newMap = recursiveSerialization(serializable);
                 newMap.put(CLASS_KEY, ConfigurationSerialization.getAlias(serializable.getClass()));
                 map.put(entry.getKey(), newMap);
+            } else {
+                map.put(entry.getKey(), object);
             }
         }
         
