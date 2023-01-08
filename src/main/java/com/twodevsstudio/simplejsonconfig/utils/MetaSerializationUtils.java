@@ -53,7 +53,7 @@ public class MetaSerializationUtils {
                 "colors");
         ArrayList<LinkedTreeMap<String, Object>> fades = (ArrayList<LinkedTreeMap<String, Object>>) rawEffect.get(
                 "fadeColors");
-    
+        
         rawEffect.put("colors", deserializeRawColors(colors));
         rawEffect.put("fadeColors", deserializeRawColors(fades));
         
@@ -66,6 +66,7 @@ public class MetaSerializationUtils {
     }
     
     public Color deserializeRawColor(LinkedTreeMap<String, Object> rawColor) {
+        
         final int red = ((Double) rawColor.remove("red")).intValue();
         final int green = ((Double) rawColor.remove("green")).intValue();
         final int blue = ((Double) rawColor.remove("blue")).intValue();

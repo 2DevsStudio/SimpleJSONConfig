@@ -28,7 +28,7 @@ public class SuperclassExclusionStrategy implements ExclusionStrategy {
         
         while (superclass != null) {
             Field field = getField(superclass, fieldName);
-    
+            
             if (field != null) {
                 return true;
             }

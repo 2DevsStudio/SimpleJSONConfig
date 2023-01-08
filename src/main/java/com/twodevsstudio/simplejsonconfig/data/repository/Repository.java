@@ -2,7 +2,6 @@ package com.twodevsstudio.simplejsonconfig.data.repository;
 
 import com.twodevsstudio.simplejsonconfig.data.Identifiable;
 
-import java.nio.charset.Charset;
 import java.util.Collection;
 
 public interface Repository<ID, T extends Identifiable<ID>> {

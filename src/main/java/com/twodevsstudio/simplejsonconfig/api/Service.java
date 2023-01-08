@@ -13,6 +13,19 @@ import java.util.function.Predicate;
  */
 public interface Service<ID, T extends Identifiable<ID>> {
     
+    /**
+     * Use this method to get the instance of the service that applies to parameterized class
+     *
+     * @param storedType Specify a class for which you want to get a service
+     *
+     * @return Instance of the Service for the specified type
+     */
+    
+    static <ID, T extends Identifiable<ID>> Service<ID, T> getService(Class<T> storedType) {
+        
+        return ServiceContainer.getService(storedType);
+    }
+    
     void save(T object);
     
     void saveAll();
@@ -32,17 +45,4 @@ public interface Service<ID, T extends Identifiable<ID>> {
     void addToCache(T object);
     
     void deleteFromCache(ID id);
-    
-    /**
-     * Use this method to get the instance of the service that applies to parameterized class
-     *
-     * @param storedType Specify a class for which you want to get a service
-     *
-     * @return Instance of the Service for the specified type
-     */
-    
-    static <ID, T extends Identifiable<ID>> Service<ID, T> getService(Class<T> storedType) {
-        
-        return ServiceContainer.getService(storedType);
-    }
 }

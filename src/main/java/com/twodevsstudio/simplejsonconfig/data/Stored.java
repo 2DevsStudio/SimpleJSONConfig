@@ -12,4 +12,10 @@ public @interface Stored {
     String value();
     
     StoreType storeType() default StoreType.JSON;
+    
+    long cacheLifespanSeconds() default -1;
+    
+    long cacheScanIntervalSeconds() default 120L;
+    
+    int cacheMaxSize() default Integer.MAX_VALUE;
 }

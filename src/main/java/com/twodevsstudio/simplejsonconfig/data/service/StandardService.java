@@ -2,6 +2,7 @@ package com.twodevsstudio.simplejsonconfig.data.service;
 
 import com.twodevsstudio.simplejsonconfig.api.Service;
 import com.twodevsstudio.simplejsonconfig.data.Identifiable;
+import com.twodevsstudio.simplejsonconfig.data.cache.InMemoryCache;
 import com.twodevsstudio.simplejsonconfig.data.repository.Repository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -12,15 +13,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor( access = AccessLevel.PROTECTED )
 class StandardService<ID, T extends Identifiable<ID>> implements Service<ID, T> {
     
-    private final Map<ID, T> cache = new ConcurrentHashMap<>();
+    private final InMemoryCache<ID, T> cache;
     private final Repository<ID, T> repository;
     
     @Override
@@ -88,14 +87,14 @@ class StandardService<ID, T extends Identifiable<ID>> implements Service<ID, T> 
         List<T> allMatching = repository.findAll().stream().filter(predicate).collect(Collectors.toList());
         // Map cached data to get List of the IDs of all matching records for the next step filtering
         List<ID> cachedMatchingIds = cachedMatching.stream().map(Identifiable::getId).collect(Collectors.toList());
-    
+        
         // Filter out all possibly outdated records.
         List<T> finalMatching = allMatching.stream()
                 .filter(t -> !cachedMatchingIds.contains(t.getId()))
                 .collect(Collectors.toList());
         // Add back all up-to-date matching records.
         finalMatching.addAll(cachedMatching);
-    
+        
         finalMatching.forEach(this::addToCache); // Cache all new data from the repository.
         return finalMatching;
     }
@@ -123,7 +122,10 @@ class StandardService<ID, T extends Identifiable<ID>> implements Service<ID, T> 
     @Override
     public void addToCache(T object) {
         
-        cache.putIfAbsent(object.getId(), object);
+        if (cache.containsKey(object.getId())) {
+            return;
+        }
+        cache.put(object.getId(), object);
     }
     
     @Override

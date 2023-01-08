@@ -1,10 +1,16 @@
 package com.twodevsstudio.simplejsonconfig.api;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.twodevsstudio.simplejsonconfig.SimpleJSONConfig;
 import com.twodevsstudio.simplejsonconfig.data.Identifiable;
 import com.twodevsstudio.simplejsonconfig.data.Stored;
+import com.twodevsstudio.simplejsonconfig.data.cache.InMemoryCache;
 import com.twodevsstudio.simplejsonconfig.data.service.FileService;
 import com.twodevsstudio.simplejsonconfig.def.Serializer;
 import com.twodevsstudio.simplejsonconfig.def.StoreType;
+import com.twodevsstudio.simplejsonconfig.def.adapters.FieldValidator;
+import com.twodevsstudio.simplejsonconfig.exceptions.ConfigDeprecatedException;
 import com.twodevsstudio.simplejsonconfig.interfaces.Autowired;
 import com.twodevsstudio.simplejsonconfig.interfaces.Comment;
 import com.twodevsstudio.simplejsonconfig.interfaces.Configuration;
@@ -32,6 +38,23 @@ import static java.lang.reflect.Modifier.isStatic;
 import static org.reflections.scanners.Scanners.*;
 
 public class AnnotationProcessor {
+    
+    public static Map<String, Comment> getFieldsComments(Object object) {
+        
+        Map<String, Comment> comments = new HashMap<>();
+        
+        for (Field declaredField : object.getClass().getDeclaredFields()) {
+            declaredField.setAccessible(true);
+            if (!declaredField.isAnnotationPresent(Comment.class)) {
+                continue;
+            }
+            
+            Comment comment = declaredField.getAnnotation(Comment.class);
+            comments.put(declaredField.getName(), comment);
+        }
+        
+        return comments;
+    }
     
     public void processAnnotations(@NotNull Plugin plugin, File configsDirectory, Set<Plugin> dependencies) {
         
@@ -101,7 +124,7 @@ public class AnnotationProcessor {
             field.setAccessible(true);
             field.set(config, configFile);
             
-            initConfig(config, configFile);
+            initConfig(config, configFile, configurationAnnotation, true);
             
         }
         
@@ -117,7 +140,6 @@ public class AnnotationProcessor {
         
         processStores(pluginDirectory, reflections);
     }
-    
     
     @SneakyThrows
     public void processStores(Path pluginDirectory, Reflections reflections) {
@@ -143,7 +165,11 @@ public class AnnotationProcessor {
             Path path = Paths.get(pluginDirectory.toString(), storeDirectoryPath);
             Files.createDirectories(path);
             
-            Service service = new FileService<>(identifiable, path, storeType);
+            InMemoryCache cache = new InMemoryCache(annotation.cacheLifespanSeconds(),
+                    annotation.cacheScanIntervalSeconds(), annotation.cacheMaxSize()
+            );
+            
+            Service service = new FileService<>(identifiable, path, storeType, cache);
             
             ServiceContainer.SINGLETONS.put(identifiable, service);
         }
@@ -183,13 +209,19 @@ public class AnnotationProcessor {
         processAutowired(reflections);
     }
     
-    
     @SneakyThrows
     public void processAutowired(Reflections reflections) {
         
         for (Field field : reflections.get(FieldsAnnotated.with(Autowired.class).as(Field.class))) {
             
             field.setAccessible(true);
+            
+            if (SimpleJSONConfig.INSTANCE.isEnableDebug()) {
+                CustomLogger.log("Autowiring config class to field : " +
+                                 field.getDeclaringClass().getTypeName() +
+                                 "." +
+                                 field.getName());
+            }
             
             Class<?> type = field.getType();
             
@@ -217,16 +249,21 @@ public class AnnotationProcessor {
         return Identifiable.class.isAssignableFrom(clazz);
     }
     
-    private void initConfig(@NotNull Config config, @NotNull File configFile) {
+    private void initConfig(@NotNull Config config,
+                            @NotNull File configFile,
+                            @NotNull Configuration annotation,
+                            boolean runValidation
+    ) {
         
         config.configFile = configFile;
         
+        Serializer serializer = Serializer.getInst();
         if (!configFile.exists()) {
             
             try {
                 configFile.mkdirs();
                 configFile.createNewFile();
-                Serializer.getInst().saveConfig(config, configFile, Config.getType(), StandardCharsets.UTF_8);
+                serializer.saveConfig(config, configFile, Config.getType(), StandardCharsets.UTF_8);
             } catch (IOException ex) {
                 ex.printStackTrace();
                 return;
@@ -234,7 +271,25 @@ public class AnnotationProcessor {
             
         } else {
             
+            if (runValidation) {
+                serializer.toBuilder().registerTypeHierarchyAdapter(Config.class, new FieldValidator()).build();
+            }
+            
             try {
+                config.reload();
+            } catch (ConfigDeprecatedException exception) {
+                serializer.toBuilder().unregisterTypeHierarchyAdapter(Config.class, FieldValidator.class).build();
+                
+                if (!annotation.enableConfigAutoUpdates()) {
+                    CustomLogger.warning(exception.getMessage());
+                    config.reload();
+                } else {
+                    handleOutdatedConfigUpdate(config, configFile, annotation, exception);
+                    return;
+                }
+                
+            } catch (UnsupportedOperationException ignored) {
+                serializer.toBuilder().unregisterTypeHierarchyAdapter(Config.class, FieldValidator.class).build();
                 config.reload();
             } catch (Exception exception) {
                 CustomLogger.warning(config.getClass().getName() + ": Config file is corrupted");
@@ -242,27 +297,52 @@ public class AnnotationProcessor {
                 return;
             }
             
+            
         }
         
         ConfigContainer.SINGLETONS.put(config.getClass(), config);
     }
     
-    
-    public static Map<String, Comment> getFieldsComments(Object object) {
+    @SneakyThrows
+    private void handleOutdatedConfigUpdate(@NotNull Config config,
+                                            @NotNull File configFile,
+                                            @NotNull Configuration annotation,
+                                            ConfigDeprecatedException exception
+    ) {
         
-        Map<String, Comment> comments = new HashMap<>();
+        JsonObject sourceJson = exception.getSourceJson().getAsJsonObject();
+        exception.getRedundantFields().forEach(sourceJson::remove);
         
-        for (Field declaredField : object.getClass().getDeclaredFields()) {
+        Class<? extends @NotNull Config> configClass = config.getClass();
+        
+        List<String> missingFields = exception.getMissingFields();
+        
+        Serializer serializer = Serializer.getInst();
+        for (Field declaredField : configClass.getDeclaredFields()) {
+            
             declaredField.setAccessible(true);
-            if (!declaredField.isAnnotationPresent(Comment.class)) {
+            if (!missingFields.contains(declaredField.getName())) {
                 continue;
             }
             
-            Comment comment = declaredField.getAnnotation(Comment.class);
-            comments.put(declaredField.getName(), comment);
+            Object fieldValue = declaredField.get(config);
+            JsonElement jsonElement = serializer.getGson().toJsonTree(fieldValue);
+            sourceJson.add(declaredField.getName(), jsonElement);
+            
         }
         
-        return comments;
+        Config mergedConfig = serializer.getGson().fromJson(sourceJson, configClass);
+        
+        Field configFileField = mergedConfig.getClass().getSuperclass().getDeclaredField("configFile");
+        configFileField.setAccessible(true);
+        configFileField.set(mergedConfig, configFile);
+        
+        mergedConfig.save();
+        initConfig(config, configFile, annotation, false);
+        CustomLogger.log(String.format(
+                "Config \"%s\" has been updated! %nMissing fields added: %s %nRedundant fields removed: %s",
+                configFile.getName(), exception.getMissingFields(), exception.getRedundantFields()
+        ));
     }
     
     private Reflections buildReflections(String packageName, ClassLoader[] classLoaders) {
