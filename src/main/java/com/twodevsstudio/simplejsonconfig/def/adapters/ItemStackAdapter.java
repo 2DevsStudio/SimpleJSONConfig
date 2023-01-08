@@ -121,6 +121,8 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
                 Map<String, Object> newMap = recursiveSerialization(serializable);
                 newMap.put(CLASS_KEY, ConfigurationSerialization.getAlias(serializable.getClass()));
                 map.put(entry.getKey(), newMap);
+            } else {
+                map.put(entry.getKey(), object);
             }
         }
         
@@ -167,7 +169,7 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
                     (List<LinkedTreeMap<String, Object>>) rawMeta.get(CUSTOM_EFFECTS_MEMBER));
             Color customColor = MetaSerializationUtils.deserializeRawColor(
                     (LinkedTreeMap<String, Object>) rawMeta.get(CUSTOM_COLOR_MEMBER));
-    
+            
             rawMeta.put(CUSTOM_EFFECTS_MEMBER, potionEffects);
             rawMeta.put(CUSTOM_COLOR_MEMBER, customColor);
             
