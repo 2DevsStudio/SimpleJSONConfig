@@ -6,6 +6,7 @@ import com.twodevsstudio.simplejsonconfig.def.StoreType;
 import com.twodevsstudio.simplejsonconfig.exceptions.InstanceOverrideException;
 import com.twodevsstudio.simplejsonconfig.utils.CustomLogger;
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -20,6 +21,9 @@ public enum SimpleJSONConfig {
     @Getter
     private final AnnotationProcessor annotationProcessor = new AnnotationProcessor();
     private final Map<Plugin, File> plugins = new HashMap<>();
+    @Getter
+    @Setter
+    private boolean enableDebug = false;
     
     public void register(JavaPlugin javaPlugin, File configsDirectory) {
         

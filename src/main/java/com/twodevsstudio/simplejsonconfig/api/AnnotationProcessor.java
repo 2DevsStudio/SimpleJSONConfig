@@ -2,6 +2,7 @@ package com.twodevsstudio.simplejsonconfig.api;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.twodevsstudio.simplejsonconfig.SimpleJSONConfig;
 import com.twodevsstudio.simplejsonconfig.data.Identifiable;
 import com.twodevsstudio.simplejsonconfig.data.Stored;
 import com.twodevsstudio.simplejsonconfig.data.cache.InMemoryCache;
@@ -214,6 +215,13 @@ public class AnnotationProcessor {
         for (Field field : reflections.get(FieldsAnnotated.with(Autowired.class).as(Field.class))) {
             
             field.setAccessible(true);
+            
+            if (SimpleJSONConfig.INSTANCE.isEnableDebug()) {
+                CustomLogger.log("Autowiring config class to field : " +
+                                 field.getDeclaringClass().getTypeName() +
+                                 "." +
+                                 field.getName());
+            }
             
             Class<?> type = field.getType();
             
