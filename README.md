@@ -145,13 +145,13 @@ Maven:
 </repositories>
 
 <dependecies>
-<dependency>
-  <groupId>com.twodevsstudio</groupId>
-  <artifactId>SimpleJSONConfig</artifactId>
-  <version>1.3</version>
-  <scope>compile</scope> <!-- Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing -->
-  <scope>provided</scope> <!-- Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing -->
-</dependency>
+  <dependency>
+    <groupId>com.twodevsstudio</groupId>
+    <artifactId>SimpleJSONConfig</artifactId>
+    <version>1.3</version>
+    <scope>compile</scope> <!-- Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing -->
+    <scope>provided</scope> <!-- Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing -->
+  </dependency>
 </dependecies>
 ```
 
