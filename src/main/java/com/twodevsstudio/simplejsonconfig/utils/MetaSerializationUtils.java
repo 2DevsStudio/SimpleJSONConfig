@@ -7,21 +7,23 @@ import org.bukkit.FireworkEffect;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @UtilityClass
 public class MetaSerializationUtils {
     
-    public List<PotionEffect> deserializePotionEffects(List<LinkedTreeMap<String, Object>> rawEffects) {
+    public List<PotionEffect> deserializePotionEffects(List<Map<String, Object>> rawEffects) {
         
         return rawEffects.stream().map(MetaSerializationUtils::deserializeRawPotionEffect).collect(Collectors.toList());
     }
     
-    public PotionEffect deserializeRawPotionEffect(LinkedTreeMap<String, Object> rawEffect) {
+    public PotionEffect deserializeRawPotionEffect(Map<String, Object> rawEffect) {
         
-        LinkedTreeMap<String, Object> rawType = (LinkedTreeMap<String, Object>) rawEffect.getOrDefault(
+        Map<String, Object> rawType = (Map<String, Object>) rawEffect.getOrDefault(
                 "type", new LinkedTreeMap<>());
         int typeId = ((Double) rawType.getOrDefault("id", 1D)).intValue();
         
@@ -40,18 +42,18 @@ public class MetaSerializationUtils {
     }
     
     
-    public static List<FireworkEffect> deserializeFireworkEffects(List<LinkedTreeMap<String, Object>> rawEffects) {
+    public static List<FireworkEffect> deserializeFireworkEffects(List<Map<String, Object>> rawEffects) {
         
         return rawEffects.stream()
                 .map(MetaSerializationUtils::deserializeRawFireworkEffect)
                 .collect(Collectors.toList());
     }
     
-    public FireworkEffect deserializeRawFireworkEffect(LinkedTreeMap<String, Object> rawEffect) {
+    public FireworkEffect deserializeRawFireworkEffect(Map<String, Object> rawEffect) {
         
-        ArrayList<LinkedTreeMap<String, Object>> colors = (ArrayList<LinkedTreeMap<String, Object>>) rawEffect.get(
+        ArrayList<Map<String, Object>> colors = (ArrayList<Map<String, Object>>) rawEffect.get(
                 "colors");
-        ArrayList<LinkedTreeMap<String, Object>> fades = (ArrayList<LinkedTreeMap<String, Object>>) rawEffect.get(
+        ArrayList<Map<String, Object>> fades = (ArrayList<Map<String, Object>>) rawEffect.get(
                 "fadeColors");
         
         rawEffect.put("colors", deserializeRawColors(colors));
@@ -60,16 +62,29 @@ public class MetaSerializationUtils {
         return (FireworkEffect) FireworkEffect.deserialize(rawEffect);
     }
     
-    public List<Color> deserializeRawColors(List<LinkedTreeMap<String, Object>> rawColors) {
+    public List<Color> deserializeRawColors(List<Map<String, Object>> rawColors) {
         
         return rawColors.stream().map(MetaSerializationUtils::deserializeRawColor).collect(Collectors.toList());
     }
     
-    public Color deserializeRawColor(LinkedTreeMap<String, Object> rawColor) {
+    public Color deserializeRawColor(Map<String, Object> rawColor) {
+    
+        Number redNum;
+        Number greenNum;
+        Number blueNum;
+        if (rawColor.containsKey("RED")){
+            redNum = ((Number) rawColor.remove("RED"));
+            greenNum = ((Number) rawColor.remove("GREEN"));
+            blueNum = ((Number) rawColor.remove("BLUE"));
+        }else {
+            redNum = ((Number) rawColor.remove("red"));
+            greenNum = ((Number) rawColor.remove("green"));
+            blueNum = ((Number) rawColor.remove("blue"));
+        }
         
-        final int red = ((Double) rawColor.remove("red")).intValue();
-        final int green = ((Double) rawColor.remove("green")).intValue();
-        final int blue = ((Double) rawColor.remove("blue")).intValue();
+        final int red = redNum.intValue();
+        final int green = greenNum.intValue();
+        final int blue = blueNum.intValue();
         rawColor.put("RED", Math.abs(red));
         rawColor.put("GREEN", Math.abs(green));
         rawColor.put("BLUE", Math.abs((blue)));
