@@ -18,7 +18,7 @@ public class InMemoryCache<K, V> {
         
         this.entryLifespanMillis = entryLifespanSeconds * 1000;
         this.scanIntervalMillis = scanIntervalSeconds * 1000;
-        cache = new LRUMap<>(maxSize);
+        cache = new LRUMap<>(maxSize, 10);
         
         if (entryLifespanMillis <= 0 || scanIntervalSeconds <= 0) {
             return;
