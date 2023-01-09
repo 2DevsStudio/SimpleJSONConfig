@@ -53,7 +53,7 @@ public class FileRepository<ID, T extends Identifiable<ID>> implements Repositor
             return null;
         }
         
-        return SERIALIZER.loadConfig(typeToken, file.toFile());
+        return SERIALIZER.loadConfig(typeToken, file.toFile(), storeType);
     }
     
     @Override
