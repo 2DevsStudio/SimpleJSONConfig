@@ -37,7 +37,11 @@ public class Serializer {
     private final JsonParser jsonParser = new JsonParser();
     
     private final SharedGsonBuilder jsonBuilder;
-    @Setter( onParam_ = @NotNull, value = AccessLevel.PROTECTED )
+
+    /**
+     * Please use {@link SharedGsonBuilder} to avoid Gson Override
+     */
+    @Setter( onParam_ = @NotNull, value = AccessLevel.PUBLIC )
     private Gson gson;
     
     /**
