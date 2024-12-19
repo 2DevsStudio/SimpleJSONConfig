@@ -43,14 +43,12 @@ public class CommentProcessor {
     
     @SneakyThrows
     public void includeComments(File file, Object object) {
-        
         Map<String, Comment> comments = AnnotationProcessor.getFieldsComments(object);
         includeComments(file, comments);
     }
     
     @SneakyThrows
     public File getFileWithoutComments(File file) {
-        
         List<String> lines = Files.readAllLines(Paths.get(file.getPath()));
         List<String> linesWithoutComments = new ArrayList<>();
         
@@ -84,5 +82,4 @@ public class CommentProcessor {
         
         return temp;
     }
-    
 }

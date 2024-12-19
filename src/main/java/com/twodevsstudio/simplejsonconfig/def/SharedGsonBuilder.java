@@ -14,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 public final class SharedGsonBuilder {
-    
     private final Serializer targetSerializer;
     
     private final Map<Class<?>, List<Object>> typeHierarchyAdapters = new ConcurrentHashMap<>();
@@ -23,7 +22,6 @@ public final class SharedGsonBuilder {
     private final List<ExclusionStrategy> serializationExclusionStrategies = new ArrayList<>();
     
     public SharedGsonBuilder registerTypeHierarchyAdapter(Class<?> baseType, Object typeAdapter) {
-        
         typeHierarchyAdapters.putIfAbsent(baseType, new ArrayList<>());
         List<Object> adapters = typeHierarchyAdapters.get(baseType);
         if (adapters.contains(typeAdapter)) {
@@ -35,7 +33,6 @@ public final class SharedGsonBuilder {
     }
     
     public SharedGsonBuilder unregisterTypeHierarchyAdapter(Class<?> baseType, Class<?> typeAdapterClass) {
-        
         if (!typeHierarchyAdapters.containsKey(baseType)) {
             return this;
         }
@@ -45,7 +42,6 @@ public final class SharedGsonBuilder {
     }
     
     public SharedGsonBuilder registerTypeAdapter(Type type, Object typeAdapter) {
-        
         typeAdapters.putIfAbsent(type, new ArrayList<>());
         List<Object> adapters = typeAdapters.get(type);
         if (adapters.contains(typeAdapter)) {
@@ -57,7 +53,6 @@ public final class SharedGsonBuilder {
     }
     
     public SharedGsonBuilder unregisterTypeAdapter(Type type, Object typeAdapterClass) {
-        
         if (!typeAdapters.containsKey(type)) {
             return this;
         }
@@ -67,7 +62,6 @@ public final class SharedGsonBuilder {
     }
     
     public SharedGsonBuilder addDeserializationExclusionStrategy(ExclusionStrategy strategy) {
-        
         if (deserializationExclusionStrategies.contains(strategy)) {
             return this;
         }
@@ -76,13 +70,11 @@ public final class SharedGsonBuilder {
     }
     
     public SharedGsonBuilder removeDeserializationExclusionStrategy(Class<ExclusionStrategy> strategyClass) {
-        
         deserializationExclusionStrategies.removeIf(strategy -> strategy.getClass().equals(strategyClass));
         return this;
     }
     
     public SharedGsonBuilder addSerializationExclusionStrategy(ExclusionStrategy strategy) {
-        
         if (serializationExclusionStrategies.contains(strategy)) {
             return this;
         }
@@ -91,18 +83,15 @@ public final class SharedGsonBuilder {
     }
     
     public SharedGsonBuilder removeSerializationExclusionStrategy(Class<ExclusionStrategy> strategyClass) {
-        
         serializationExclusionStrategies.removeIf(strategy -> strategy.getClass().equals(strategyClass));
         return this;
     }
     
     public void build() {
-        
         targetSerializer.setGson(buildGson());
     }
     
     public Gson buildGson() {
-        
         GsonBuilder gsonBuilder = new GsonBuilder().setPrettyPrinting()
                 .disableHtmlEscaping()
                 .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC)

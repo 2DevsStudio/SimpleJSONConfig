@@ -20,7 +20,6 @@ import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 public class FileRepository<ID, T extends Identifiable<ID>> implements Repository<ID, T> {
-    
     public static final Serializer SERIALIZER = Serializer.getInst();
     private final TypeToken<T> typeToken;
     private final Path dataDirectory;
@@ -29,13 +28,11 @@ public class FileRepository<ID, T extends Identifiable<ID>> implements Repositor
     @Override
     @SneakyThrows
     public void save(@NotNull T object) {
-        
         save(object, StandardCharsets.UTF_8);
     }
     
     @SneakyThrows
     public void save(@NotNull T object, Charset charset) {
-        
         Path file = findFileById(object.getId());
         if (!Files.exists(file)) {
             Files.createFile(file);
@@ -47,7 +44,6 @@ public class FileRepository<ID, T extends Identifiable<ID>> implements Repositor
     @Override
     @Nullable
     public T findById(@NotNull ID id) {
-        
         Path file = findFileById(id);
         if (!Files.exists(file)) {
             return null;
@@ -60,7 +56,6 @@ public class FileRepository<ID, T extends Identifiable<ID>> implements Repositor
     @SneakyThrows
     @NotNull
     public List<T> findAll() {
-        
         try (Stream<Path> walk = Files.walk(dataDirectory)) {
             return walk.filter(path -> !Files.isDirectory(path))
                     .filter(path -> path.toString().endsWith(storeType.getExtension()))
@@ -72,20 +67,17 @@ public class FileRepository<ID, T extends Identifiable<ID>> implements Repositor
     @Override
     @SneakyThrows
     public void deleteById(@NotNull ID id) {
-        
         Files.deleteIfExists(findFileById(id));
     }
     
     @Override
     public void delete(@NotNull T object) {
-        
         deleteById(object.getId());
     }
     
     @SneakyThrows
     @NotNull
     public Path findFileById(@NotNull ID id) {
-        
         if (!Files.exists(dataDirectory)) {
             Files.createDirectories(dataDirectory);
         }
