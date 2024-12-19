@@ -15,16 +15,13 @@ import java.util.Set;
 
 @Getter
 public abstract class Config {
-    
     private static final Serializer SERIALIZER = Serializer.getInst();
     @Setter
     @Getter
     private static StoreType type = StoreType.JSON;
     protected transient File configFile;
     
-    protected Config() {
-    
-    }
+    protected Config() {}
     
     /**
      * Use this method to get the instance of configuration that applies to parameterized class
@@ -35,7 +32,6 @@ public abstract class Config {
      * @return Instance of the configuration of specified type (no need for cast to concrete types)
      */
     public static <T extends Config> T getConfig(Class<T> configClass) {
-        
         return ConfigContainer.getConfiguration(configClass);
     }
     
@@ -46,7 +42,6 @@ public abstract class Config {
      */
     @NotNull
     public static Set<String> reloadAll() {
-        
         Set<String> reloadedConfigs = new HashSet<>();
         
         for (Config config : ConfigContainer.SINGLETONS.values()) {
@@ -63,7 +58,6 @@ public abstract class Config {
      * file
      */
     public void reload() {
-        
         Config newConfig = SERIALIZER.loadConfig(getClass(), this.configFile, type);
         
         if (newConfig == null) {
@@ -84,7 +78,6 @@ public abstract class Config {
     }
     
     public void save() {
-        
         SERIALIZER.saveConfig(this, configFile, type, StandardCharsets.UTF_8);
     }
     

@@ -15,7 +15,6 @@ public class InMemoryCache<K, V> {
     private final LRUMap<K, CacheObject> cache;
     
     public InMemoryCache(long entryLifespanSeconds, final long scanIntervalSeconds, int maxSize) {
-        
         this.entryLifespanMillis = entryLifespanSeconds * 1000;
         this.scanIntervalMillis = scanIntervalSeconds * 1000;
         cache = new LRUMap<>(maxSize, 10);
@@ -40,7 +39,6 @@ public class InMemoryCache<K, V> {
     }
     
     public void cleanupCache() {
-        
         long now = System.currentTimeMillis();
         ArrayList<K> deleteKey;
         
@@ -70,14 +68,12 @@ public class InMemoryCache<K, V> {
     }
     
     public void put(K key, V value) {
-        
         synchronized (cache) {
             cache.put(key, new CacheObject(value));
         }
     }
     
     public V get(K key) {
-        
         synchronized (cache) {
             CacheObject cacheObject = cache.get(key);
             
@@ -90,28 +86,24 @@ public class InMemoryCache<K, V> {
     }
     
     public void remove(K key) {
-        
         synchronized (cache) {
             cache.remove(key);
         }
     }
     
     public int size() {
-        
         synchronized (cache) {
             return cache.size();
         }
     }
     
     public Collection<V> values() {
-        
         synchronized (cache) {
             return cache.values().stream().map(cacheObject -> cacheObject.value).collect(Collectors.toList());
         }
     }
     
     public boolean containsKey(K key) {
-        
         synchronized (cache) {
             return cache.containsKey(key);
         }
@@ -119,7 +111,6 @@ public class InMemoryCache<K, V> {
     
     @Data
     protected class CacheObject {
-        
         private long lastAccessed = System.currentTimeMillis();
         private V value;
         

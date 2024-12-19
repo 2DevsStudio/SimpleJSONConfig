@@ -5,10 +5,8 @@ import lombok.SneakyThrows;
 import java.lang.reflect.Field;
 
 public interface PostProcessable {
-    
     @SneakyThrows
     static void deepPostProcess(Object object) {
-        
         for (Field declaredField : object.getClass().getDeclaredFields()) {
             declaredField.setAccessible(true);
             
@@ -23,8 +21,6 @@ public interface PostProcessable {
     
     @SneakyThrows
     static void recursivePostProcess(PostProcessable postProcessable) {
-        
-        
         for (Field declaredField : postProcessable.getClass().getDeclaredFields()) {
             declaredField.setAccessible(true);
             
@@ -38,7 +34,6 @@ public interface PostProcessable {
         
         postProcessable.gsonPostProcess();
     }
-    
+
     void gsonPostProcess();
-    
 }

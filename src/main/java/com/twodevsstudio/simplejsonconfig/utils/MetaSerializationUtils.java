@@ -15,14 +15,11 @@ import java.util.stream.Collectors;
 
 @UtilityClass
 public class MetaSerializationUtils {
-    
     public List<PotionEffect> deserializePotionEffects(List<Map<String, Object>> rawEffects) {
-        
         return rawEffects.stream().map(MetaSerializationUtils::deserializeRawPotionEffect).collect(Collectors.toList());
     }
     
     public PotionEffect deserializeRawPotionEffect(Map<String, Object> rawEffect) {
-        
         Map<String, Object> rawType = (Map<String, Object>) rawEffect.getOrDefault(
                 "type", new LinkedTreeMap<>());
         int typeId = ((Double) rawType.getOrDefault("id", 1D)).intValue();
@@ -43,14 +40,12 @@ public class MetaSerializationUtils {
     
     
     public static List<FireworkEffect> deserializeFireworkEffects(List<Map<String, Object>> rawEffects) {
-        
         return rawEffects.stream()
                 .map(MetaSerializationUtils::deserializeRawFireworkEffect)
                 .collect(Collectors.toList());
     }
     
     public FireworkEffect deserializeRawFireworkEffect(Map<String, Object> rawEffect) {
-        
         ArrayList<Map<String, Object>> colors = (ArrayList<Map<String, Object>>) rawEffect.get(
                 "colors");
         ArrayList<Map<String, Object>> fades = (ArrayList<Map<String, Object>>) rawEffect.get(
@@ -63,12 +58,10 @@ public class MetaSerializationUtils {
     }
     
     public List<Color> deserializeRawColors(List<Map<String, Object>> rawColors) {
-        
         return rawColors.stream().map(MetaSerializationUtils::deserializeRawColor).collect(Collectors.toList());
     }
     
     public Color deserializeRawColor(Map<String, Object> rawColor) {
-    
         Number redNum;
         Number greenNum;
         Number blueNum;

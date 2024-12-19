@@ -10,7 +10,6 @@ import java.lang.annotation.*;
 @Retention( RetentionPolicy.RUNTIME )
 @Documented
 public @interface Configuration {
-    
     /**
      * You have to specify your configuration name.
      *
@@ -27,5 +26,4 @@ public @interface Configuration {
      * was not specified)
      */
     boolean enableConfigAutoUpdates() default true;
-    
 }

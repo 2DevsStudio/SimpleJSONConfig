@@ -12,7 +12,6 @@ import java.util.function.Predicate;
  * @author Slighterr12
  */
 public interface Service<ID, T extends Identifiable<ID>> {
-    
     /**
      * Use this method to get the instance of the service that applies to parameterized class
      *
@@ -22,7 +21,6 @@ public interface Service<ID, T extends Identifiable<ID>> {
      */
     
     static <ID, T extends Identifiable<ID>> Service<ID, T> getService(Class<T> storedType) {
-        
         return ServiceContainer.getService(storedType);
     }
     

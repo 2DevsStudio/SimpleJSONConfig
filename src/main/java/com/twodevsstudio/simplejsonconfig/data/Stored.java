@@ -8,7 +8,6 @@ import java.lang.annotation.*;
 @Retention( RetentionPolicy.RUNTIME )
 @Documented
 public @interface Stored {
-    
     String value();
     
     StoreType storeType() default StoreType.JSON;

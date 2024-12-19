@@ -18,13 +18,11 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor( access = AccessLevel.PROTECTED )
 class StandardService<ID, T extends Identifiable<ID>> implements Service<ID, T> {
-    
     private final InMemoryCache<ID, T> cache;
     private final Repository<ID, T> repository;
     
     @Override
     public void save(T object) {
-        
         if (object == null) {
             return;
         }
@@ -35,7 +33,6 @@ class StandardService<ID, T extends Identifiable<ID>> implements Service<ID, T> 
     
     @Override
     public void saveAll() {
-        
         cache.values().forEach(this::save);
     }
     
@@ -43,7 +40,6 @@ class StandardService<ID, T extends Identifiable<ID>> implements Service<ID, T> 
     @Nullable
     @Contract( "null -> null" )
     public T getById(ID id) {
-        
         if (id == null) {
             return null;
         }
@@ -63,7 +59,6 @@ class StandardService<ID, T extends Identifiable<ID>> implements Service<ID, T> 
     @Override
     @NotNull
     public Collection<T> loadAndGetAll() {
-        
         Collection<T> all = repository.findAll();
         all.forEach(this::addToCache);
         return cache.values();
@@ -72,7 +67,6 @@ class StandardService<ID, T extends Identifiable<ID>> implements Service<ID, T> 
     @Override
     @NotNull
     public Collection<T> getMatching(Predicate<T> predicate) {
-        
         if (predicate == null) {
             return new ArrayList<>();
         }
@@ -101,27 +95,23 @@ class StandardService<ID, T extends Identifiable<ID>> implements Service<ID, T> 
     
     @Override
     public void deleteById(ID id) {
-        
         deleteFromCache(id);
         repository.deleteById(id);
     }
     
     @Override
     public void delete(T object) {
-        
         deleteById(object.getId());
     }
     
     @Override
     @NotNull
     public Collection<T> getAllCached() {
-        
         return cache.values();
     }
     
     @Override
     public void addToCache(T object) {
-        
         if (cache.containsKey(object.getId())) {
             return;
         }
@@ -130,7 +120,6 @@ class StandardService<ID, T extends Identifiable<ID>> implements Service<ID, T> 
     
     @Override
     public void deleteFromCache(ID id) {
-        
         cache.remove(id);
     }
 }

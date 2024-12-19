@@ -54,7 +54,6 @@ public class Serializer {
      * business logic, and that method will be called after the deserialization process complete
      */
     private Serializer() {
-        
         this.jsonBuilder = new SharedGsonBuilder(this);
         jsonBuilder.registerTypeHierarchyAdapter(Class.class, new ClassAdapter())
                 .registerTypeHierarchyAdapter(ChronoUnit.class, new ChronoUnitAdapter())
@@ -75,24 +74,20 @@ public class Serializer {
      */
     @Contract( pure = true )
     public static Serializer getInst() {
-        
         return Serializer.SingletonHelper.INSTANCE;
     }
     
     public SharedGsonBuilder toBuilder() {
-        
         return this.jsonBuilder;
     }
     
     @SneakyThrows
     public String getYamlString(String jsonString) {
-        
         JsonNode jsonNodeTree = new ObjectMapper().readTree(jsonString);
         return new YAMLMapper().writeValueAsString(jsonNodeTree);
     }
     
     public String getFileContent(Object object, StoreType type) {
-        
         String jsonString = gson.toJson(object);
         if (type == StoreType.YAML) {
             return getYamlString(jsonString);
@@ -108,13 +103,11 @@ public class Serializer {
      */
     @SneakyThrows
     public void saveConfig(Object object, @NotNull File file) {
-        
         saveConfig(object, file, StoreType.JSON, StandardCharsets.UTF_8);
     }
     
     @SneakyThrows
     public void saveConfig(Object object, @NotNull File file, StoreType storeType, Charset encoding) {
-        
         try {
             if (!file.createNewFile()) {
                 Files.deleteIfExists(file.toPath());
@@ -132,12 +125,10 @@ public class Serializer {
     }
     
     public <T> T loadConfig(TypeToken<T> token, @NotNull File file) {
-        
         return loadConfig(token, file, StoreType.JSON);
     }
     
     public <T> T loadConfig(TypeToken<T> token, @NotNull File file, StoreType configType) {
-        
         file = commentProcessor.getFileWithoutComments(file);
         
         try {
@@ -159,7 +150,6 @@ public class Serializer {
     }
     
     private String readJsonString(File file, StoreType configType) throws IOException {
-        
         String json;
         if (configType == StoreType.YAML) {
             Yaml yaml = new Yaml();
@@ -184,19 +174,15 @@ public class Serializer {
      */
     @Nullable
     public <T> T loadConfig(Class<T> clazz, @NotNull File file) {
-        
         return loadConfig(TypeToken.get(clazz), file, StoreType.JSON);
     }
     
     @Nullable
     public <T> T loadConfig(Class<T> clazz, @NotNull File file, StoreType type) {
-        
         return loadConfig(TypeToken.get(clazz), file, type);
     }
     
     private static class SingletonHelper {
-        
         private static final Serializer INSTANCE = new Serializer();
-        
     }
 }
