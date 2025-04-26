@@ -6,12 +6,15 @@ import com.twodevsstudio.simplejsonconfig.utils.MetaSerializationUtils;
 import com.twodevsstudio.simplejsonconfig.utils.Utils;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.attribute.AttributeModifier.Operation;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
@@ -228,45 +231,34 @@ public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserial
     }
     
     private void deserializeAttributes(Map<String, Object> attributes, ItemMeta meta) {
-        
-        Set<UUID> uuidsInUse = new HashSet<>();
         for (Map.Entry<String, Object> entry : attributes.entrySet()) {
             
             String attributeName = entry.getKey();
-            Attribute attribute = Attribute.valueOf(attributeName);
+            Attribute attribute = Registry.ATTRIBUTE.getOrThrow(NamespacedKey.minecraft(attributeName));
             
             List<Map<String, Object>> rawModifiers = (List<Map<String, Object>>) entry.getValue();
             List<AttributeModifier> modifiers = new ArrayList<>();
             
             for (Map<String, Object> rawModifier : rawModifiers) {
-                deserializeModifier(rawModifier, modifiers, uuidsInUse);
+                deserializeModifier(rawModifier, modifiers);
             }
             modifiers.forEach(modifier -> meta.addAttributeModifier(attribute, modifier));
         }
     }
     
     private void deserializeModifier(Map<String, Object> rawModifier,
-                                     List<AttributeModifier> modifiers,
-                                     Set<UUID> uuidsInUse
+                                     List<AttributeModifier> modifiers
     ) {
-        
-        UUID modifierUUID = UUID.fromString((String) rawModifier.get("uuid"));
-        if (uuidsInUse.contains(modifierUUID)) {
-            modifierUUID = UUID.randomUUID();
-        }
-        uuidsInUse.add(modifierUUID);
-        
-        String modifierName = String.valueOf(rawModifier.get("name"));
+
+        NamespacedKey rawKey = NamespacedKey.fromString((String) rawModifier.get("key"));
         double modifierAmount = (double) rawModifier.get(AMOUNT_MEMBER);
         Operation modifierOperation = Operation.valueOf(String.valueOf(rawModifier.get("operation")));
-        
-        EquipmentSlot modifierSlot = null;
-        Object rawSlot = rawModifier.get("slot");
-        if (rawSlot != null) {
-            modifierSlot = EquipmentSlot.valueOf(String.valueOf(rawSlot));
+        EquipmentSlotGroup modifierSlot = EquipmentSlotGroup.getByName((String) rawModifier.get("slot"));
+
+        if (modifierSlot == null) {
+            modifierSlot = EquipmentSlotGroup.HAND;
         }
-        
         modifiers.add(
-                new AttributeModifier(modifierUUID, modifierName, modifierAmount, modifierOperation, modifierSlot));
+                new AttributeModifier(rawKey, modifierAmount, modifierOperation, modifierSlot));
     }
 }
