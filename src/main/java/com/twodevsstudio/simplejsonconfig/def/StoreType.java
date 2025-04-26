@@ -8,6 +8,6 @@ import lombok.RequiredArgsConstructor;
 public enum StoreType {
     JSON(".json"),
     YAML(".yml");
-    
+
     private final String extension;
 }

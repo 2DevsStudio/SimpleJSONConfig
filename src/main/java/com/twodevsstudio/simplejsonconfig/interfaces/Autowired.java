@@ -8,8 +8,8 @@ import java.lang.annotation.*;
  * field
  */
 
-@Retention( RetentionPolicy.RUNTIME )
-@Target( ElementType.FIELD )
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
 @Documented
 public @interface Autowired {
 
