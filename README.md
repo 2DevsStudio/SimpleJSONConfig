@@ -141,9 +141,8 @@ Maven:
 
 <repositories>
     <repository>
-        <id>com.2devsstudio-latest</id>
-        <name>2DevsStudio Repository</name>
-        <url>https://repo.2devsstudio.com/latest</url>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
     </repository>
 </repositories>
 
@@ -151,7 +150,7 @@ Maven:
 <dependency>
     <groupId>com.twodevsstudio</groupId>
     <artifactId>SimpleJSONConfig</artifactId>
-    <version>1.3.2</version>
+    <version>1.4.0</version>
     <scope>compile</scope> <!-- Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing -->
     <scope>provided</scope> <!-- Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing -->
 </dependency>
@@ -162,12 +161,12 @@ Gradle:
 
 ```text
 repositories {
-    maven { url 'https://repo.2devsstudio.com/latest' }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    implementation 'com.github.2DevsStudio:SimpleJSONConfig:1.3.2' //Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing
-    compileOnly 'com.github.2DevsStudio:SimpleJSONConfig:1.3.2'    //Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing
+    implementation 'com.github.2DevsStudio:SimpleJSONConfig:1.4.0' //Better if only one plugin uses SimpleJsonConfig, no cross plugin config sharing
+    compileOnly 'com.github.2DevsStudio:SimpleJSONConfig:1.4.0'    //Add SimpleJsonConfig to your plugins folder, enables cross plugin config sharing
 }
 ```
 
