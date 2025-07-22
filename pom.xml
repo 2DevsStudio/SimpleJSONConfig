@@ -6,7 +6,7 @@
 
     <groupId>com.twodevsstudio</groupId>
     <artifactId>SimpleJSONConfig</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
     <packaging>jar</packaging>
 
     <distributionManagement>
