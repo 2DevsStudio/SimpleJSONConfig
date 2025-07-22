@@ -1,5 +1,8 @@
 package com.twodevsstudio.simplejsonconfig.api;
 
+import static java.lang.reflect.Modifier.isStatic;
+import static org.reflections.scanners.Scanners.*;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.twodevsstudio.simplejsonconfig.SimpleJSONConfig;
@@ -15,14 +18,6 @@ import com.twodevsstudio.simplejsonconfig.interfaces.Autowired;
 import com.twodevsstudio.simplejsonconfig.interfaces.Comment;
 import com.twodevsstudio.simplejsonconfig.interfaces.Configuration;
 import com.twodevsstudio.simplejsonconfig.utils.CustomLogger;
-import lombok.SneakyThrows;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
-import org.reflections.Reflections;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -34,9 +29,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.lang.reflect.Modifier.isStatic;
-import static org.reflections.scanners.Scanners.*;
+import lombok.SneakyThrows;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.reflections.Reflections;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 
 public class AnnotationProcessor {
 
@@ -92,6 +91,9 @@ public class AnnotationProcessor {
             String configPath = configurationAnnotation.configPath();
 
             if(!configPath.isEmpty()){
+                if(!configPath.endsWith("/")){
+                    configPath += "/";
+                }
                 configsDirectory = new File(plugin.getDataFolder().getParentFile(), configPath);
             }
             if (!isConfig(annotatedClass)) {
