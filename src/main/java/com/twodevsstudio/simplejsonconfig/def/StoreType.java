@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum StoreType {
-    JSON(".json"),
-    YAML(".yml");
+  JSON(".json"),
+  YAML(".yml");
 
-    private final String extension;
+  private final String extension;
 }

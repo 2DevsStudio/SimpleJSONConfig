@@ -1,16 +1,15 @@
 package com.twodevsstudio.simplejsonconfig.utils;
 
 import com.google.gson.internal.LinkedTreeMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @UtilityClass
 public class MetaSerializationUtils {

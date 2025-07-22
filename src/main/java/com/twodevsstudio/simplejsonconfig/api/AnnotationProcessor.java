@@ -39,327 +39,354 @@ import org.reflections.util.ConfigurationBuilder;
 
 public class AnnotationProcessor {
 
-    public static Map<String, Comment> getFieldsComments(Object object) {
+  public static Map<String, Comment> getFieldsComments(Object object) {
 
-        Map<String, Comment> comments = new HashMap<>();
+    Map<String, Comment> comments = new HashMap<>();
 
-        for (Field declaredField : object.getClass().getDeclaredFields()) {
-            declaredField.setAccessible(true);
-            if (!declaredField.isAnnotationPresent(Comment.class)) {
-                continue;
-            }
+    for (Field declaredField : object.getClass().getDeclaredFields()) {
+      declaredField.setAccessible(true);
+      if (!declaredField.isAnnotationPresent(Comment.class)) {
+        continue;
+      }
 
-            Comment comment = declaredField.getAnnotation(Comment.class);
-            comments.put(declaredField.getName(), comment);
+      Comment comment = declaredField.getAnnotation(Comment.class);
+      comments.put(declaredField.getName(), comment);
+    }
+
+    return comments;
+  }
+
+  public void processAnnotations(
+      @NotNull JavaPlugin plugin, File configsDirectory, Set<Plugin> dependencies) {
+
+    Reflections reflections =
+        buildReflections(
+            plugin.getClass().getPackage().getName(),
+            getClassLoaders(
+                dependencies,
+                plugin.getClass().getClassLoader(),
+                ClassLoader.getSystemClassLoader(),
+                ClasspathHelper.contextClassLoader(),
+                ClasspathHelper.staticClassLoader()));
+
+    processConfiguration(plugin, configsDirectory, reflections);
+    processStores(plugin.getDataFolder().toPath(), reflections);
+  }
+
+  public void processConfiguration(
+      JavaPlugin plugin, File configsDirectory, Class<?> clazz, Set<Plugin> dependencies) {
+
+    Reflections reflections =
+        buildReflections(
+            clazz.getPackage().getName(),
+            getClassLoaders(
+                dependencies,
+                clazz.getClassLoader(),
+                ClassLoader.getSystemClassLoader(),
+                ClasspathHelper.contextClassLoader(),
+                ClasspathHelper.staticClassLoader()));
+
+    processConfiguration(plugin, configsDirectory, reflections);
+  }
+
+  @SneakyThrows
+  public void processConfiguration(
+      JavaPlugin plugin, File configsDirectory, Reflections reflections) {
+
+    Set<Class<?>> configurationClasses =
+        reflections.get(TypesAnnotated.with(Configuration.class).asClass());
+
+    for (Class<?> annotatedClass : configurationClasses) {
+
+      Configuration configurationAnnotation = annotatedClass.getAnnotation(Configuration.class);
+      String configName = configurationAnnotation.value();
+      String configPath = configurationAnnotation.configPath();
+
+      if (!configPath.isEmpty()) {
+        if (!configPath.endsWith("/")) {
+          configPath += "/";
         }
+        configsDirectory = new File(plugin.getDataFolder().getParentFile(), configPath);
+      }
+      if (!isConfig(annotatedClass)) {
+        CustomLogger.warning(
+            "Configuration "
+                + configName
+                + " could not be loaded. Class annotated as @Configuration does not extends "
+                + Config.class.getName());
 
-        return comments;
+        continue;
+      }
+      Class<? extends Config> configClass = (Class<? extends Config>) annotatedClass;
+
+      Constructor<? extends Config> constructor;
+      Config config;
+
+      try {
+        constructor = configClass.getConstructor();
+        constructor.setAccessible(true);
+        config = constructor.newInstance();
+      } catch (ReflectiveOperationException exception) {
+        CustomLogger.warning(configClass.getName() + ": " + exception.getMessage());
+        exception.printStackTrace();
+        continue;
+      }
+
+      StoreType configType = Config.getType();
+      String fileName =
+          configName.endsWith(configType.getExtension())
+              ? configName
+              : configName + configType.getExtension();
+
+      File configFile = new File(configsDirectory, fileName);
+
+      Field field = configClass.getSuperclass().getDeclaredField("configFile");
+      field.setAccessible(true);
+      field.set(config, configFile);
+
+      initConfig(config, configFile, configurationAnnotation, true);
+    }
+  }
+
+  public void processStores(Path pluginDirectory, Class<?> clazz, Set<Plugin> dependencies) {
+
+    Reflections reflections =
+        buildReflections(
+            clazz.getPackage().getName(),
+            getClassLoaders(
+                dependencies,
+                clazz.getClassLoader(),
+                ClassLoader.getSystemClassLoader(),
+                ClasspathHelper.contextClassLoader(),
+                ClasspathHelper.staticClassLoader()));
+
+    processStores(pluginDirectory, reflections);
+  }
+
+  @SneakyThrows
+  public void processStores(Path pluginDirectory, Reflections reflections) {
+
+    Set<Class<?>> storedClasses = reflections.get(TypesAnnotated.with(Stored.class).asClass());
+
+    for (Class<?> storedClass : storedClasses) {
+      if (!isStored(storedClass)) {
+        CustomLogger.warning(
+            "Cannot create a Service for "
+                + storedClass.getName()
+                + ". Class annotated as @Stored does not implement "
+                + Identifiable.class.getName());
+
+        continue;
+      }
+
+      Class<Identifiable> identifiable = (Class<Identifiable>) storedClass;
+
+      Stored annotation = storedClass.getAnnotation(Stored.class);
+      String storeDirectoryPath = annotation.value();
+      StoreType storeType = annotation.storeType();
+
+      Path path = Paths.get(pluginDirectory.toString(), storeDirectoryPath);
+      Files.createDirectories(path);
+
+      InMemoryCache cache =
+          new InMemoryCache(
+              annotation.cacheLifespanSeconds(),
+              annotation.cacheScanIntervalSeconds(),
+              annotation.cacheMaxSize());
+
+      Service service = new FileService<>(identifiable, path, storeType, cache);
+
+      ServiceContainer.SINGLETONS.put(identifiable, service);
+    }
+  }
+
+  private ClassLoader[] getClassLoaders(
+      Set<Plugin> dependencies, ClassLoader... additionalClassLoaders) {
+
+    List<ClassLoader> classLoaders =
+        dependencies.stream()
+            .map(dependency -> dependency.getClass().getClassLoader())
+            .collect(Collectors.toList());
+
+    classLoaders.addAll(Arrays.asList(additionalClassLoaders));
+
+    return classLoaders.toArray(new ClassLoader[0]);
+  }
+
+  @SneakyThrows
+  public void processAutowired(Set<Plugin> dependencies) {
+
+    ConfigurationBuilder builder = new ConfigurationBuilder();
+
+    ClassLoader[] classLoaders =
+        getClassLoaders(
+            dependencies,
+            ClassLoader.getSystemClassLoader(),
+            ClasspathHelper.contextClassLoader(),
+            ClasspathHelper.staticClassLoader());
+
+    List<URL> urls = new ArrayList<>();
+
+    for (Plugin dependency : dependencies) {
+      urls.addAll(
+          ClasspathHelper.forPackage(dependency.getClass().getPackage().getName(), classLoaders));
     }
 
-    public void processAnnotations(@NotNull JavaPlugin plugin, File configsDirectory, Set<Plugin> dependencies) {
+    builder.addUrls(urls);
+    builder.addScanners(TypesAnnotated, FieldsAnnotated, SubTypes);
 
-        Reflections reflections = buildReflections(plugin.getClass().getPackage().getName(),
-                getClassLoaders(dependencies, plugin.getClass().getClassLoader(), ClassLoader.getSystemClassLoader(),
-                        ClasspathHelper.contextClassLoader(), ClasspathHelper.staticClassLoader()
-                )
-        );
+    Reflections reflections = new Reflections(builder);
 
-        processConfiguration(plugin, configsDirectory, reflections);
-        processStores(plugin.getDataFolder().toPath(), reflections);
+    processAutowired(reflections);
+  }
+
+  @SneakyThrows
+  public void processAutowired(Reflections reflections) {
+
+    for (Field field : reflections.get(FieldsAnnotated.with(Autowired.class).as(Field.class))) {
+
+      field.setAccessible(true);
+
+      if (SimpleJSONConfig.INSTANCE.isEnableDebug()) {
+        CustomLogger.log(
+            "Autowiring config class to field : "
+                + field.getDeclaringClass().getTypeName()
+                + "."
+                + field.getName());
+      }
+
+      Class<?> type = field.getType();
+
+      if (isConfig(type) && isStatic(field.getModifiers()) && field.get(null) == null) {
+
+        Config config = Config.getConfig((Class<? extends Config>) type);
+        field.set(null, config);
+      }
+      if (isStored(type) && isStatic(field.getModifiers()) && field.get(null) == null) {
+
+        Service service = Service.getService((Class<? extends Identifiable>) type);
+        field.set(null, service);
+      }
     }
+  }
 
-    public void processConfiguration(JavaPlugin plugin,File configsDirectory, Class<?> clazz, Set<Plugin> dependencies) {
+  public boolean isConfig(@NotNull Class<?> clazz) {
 
-        Reflections reflections = buildReflections(clazz.getPackage().getName(),
-                getClassLoaders(dependencies, clazz.getClassLoader(), ClassLoader.getSystemClassLoader(),
-                        ClasspathHelper.contextClassLoader(), ClasspathHelper.staticClassLoader()
-                )
-        );
+    return clazz.getSuperclass() == Config.class;
+  }
 
-        processConfiguration(plugin, configsDirectory, reflections);
-    }
+  public boolean isStored(@NotNull Class<?> clazz) {
 
-    @SneakyThrows
-    public void processConfiguration(JavaPlugin plugin, File configsDirectory, Reflections reflections) {
+    return Identifiable.class.isAssignableFrom(clazz);
+  }
 
-        Set<Class<?>> configurationClasses = reflections.get(TypesAnnotated.with(Configuration.class).asClass());
+  private void initConfig(
+      @NotNull Config config,
+      @NotNull File configFile,
+      @NotNull Configuration annotation,
+      boolean runValidation) {
 
-        for (Class<?> annotatedClass : configurationClasses) {
+    config.configFile = configFile;
 
-            Configuration configurationAnnotation = annotatedClass.getAnnotation(Configuration.class);
-            String configName = configurationAnnotation.value();
-            String configPath = configurationAnnotation.configPath();
+    Serializer serializer = Serializer.getInst();
+    if (!configFile.exists()) {
 
-            if(!configPath.isEmpty()){
-                if(!configPath.endsWith("/")){
-                    configPath += "/";
-                }
-                configsDirectory = new File(plugin.getDataFolder().getParentFile(), configPath);
-            }
-            if (!isConfig(annotatedClass)) {
-                CustomLogger.warning("Configuration " +
-                        configName +
-                        " could not be loaded. Class annotated as @Configuration does not extends " +
-                        Config.class.getName());
+      try {
+        configFile.mkdirs();
+        configFile.createNewFile();
+        serializer.saveConfig(config, configFile, Config.getType(), StandardCharsets.UTF_8);
+      } catch (IOException ex) {
+        ex.printStackTrace();
+        return;
+      }
 
-                continue;
-            }
+    } else {
 
-            Class<? extends Config> configClass = (Class<? extends Config>) annotatedClass;
+      if (runValidation) {
+        serializer.toBuilder()
+            .registerTypeHierarchyAdapter(Config.class, new FieldValidator())
+            .build();
+      }
 
-            Constructor<? extends Config> constructor;
-            Config config;
+      try {
+        config.reload();
+      } catch (ConfigDeprecatedException exception) {
+        serializer.toBuilder()
+            .unregisterTypeHierarchyAdapter(Config.class, FieldValidator.class)
+            .build();
 
-            try {
-                constructor = configClass.getConstructor();
-                constructor.setAccessible(true);
-                config = constructor.newInstance();
-            } catch (ReflectiveOperationException exception) {
-                CustomLogger.warning(configClass.getName() + ": " + exception.getMessage());
-                exception.printStackTrace();
-                continue;
-            }
-
-            StoreType configType = Config.getType();
-            String fileName = configName.endsWith(configType.getExtension()) ?
-                    configName :
-                    configName + configType.getExtension();
-
-            File configFile = new File(configsDirectory, fileName);
-
-            Field field = configClass.getSuperclass().getDeclaredField("configFile");
-            field.setAccessible(true);
-            field.set(config, configFile);
-
-            initConfig(config, configFile, configurationAnnotation, true);
-
-        }
-
-    }
-
-    public void processStores(Path pluginDirectory, Class<?> clazz, Set<Plugin> dependencies) {
-
-        Reflections reflections = buildReflections(clazz.getPackage().getName(),
-                getClassLoaders(dependencies, clazz.getClassLoader(), ClassLoader.getSystemClassLoader(),
-                        ClasspathHelper.contextClassLoader(), ClasspathHelper.staticClassLoader()
-                )
-        );
-
-        processStores(pluginDirectory, reflections);
-    }
-
-    @SneakyThrows
-    public void processStores(Path pluginDirectory, Reflections reflections) {
-
-        Set<Class<?>> storedClasses = reflections.get(TypesAnnotated.with(Stored.class).asClass());
-
-        for (Class<?> storedClass : storedClasses) {
-            if (!isStored(storedClass)) {
-                CustomLogger.warning("Cannot create a Service for " +
-                        storedClass.getName() +
-                        ". Class annotated as @Stored does not implement " +
-                        Identifiable.class.getName());
-
-                continue;
-            }
-
-            Class<Identifiable> identifiable = (Class<Identifiable>) storedClass;
-
-            Stored annotation = storedClass.getAnnotation(Stored.class);
-            String storeDirectoryPath = annotation.value();
-            StoreType storeType = annotation.storeType();
-
-            Path path = Paths.get(pluginDirectory.toString(), storeDirectoryPath);
-            Files.createDirectories(path);
-
-            InMemoryCache cache = new InMemoryCache(annotation.cacheLifespanSeconds(),
-                    annotation.cacheScanIntervalSeconds(), annotation.cacheMaxSize()
-            );
-
-            Service service = new FileService<>(identifiable, path, storeType, cache);
-
-            ServiceContainer.SINGLETONS.put(identifiable, service);
-        }
-    }
-
-    private ClassLoader[] getClassLoaders(Set<Plugin> dependencies, ClassLoader... additionalClassLoaders) {
-
-        List<ClassLoader> classLoaders = dependencies.stream()
-                .map(dependency -> dependency.getClass().getClassLoader())
-                .collect(Collectors.toList());
-
-        classLoaders.addAll(Arrays.asList(additionalClassLoaders));
-
-        return classLoaders.toArray(new ClassLoader[0]);
-    }
-
-    @SneakyThrows
-    public void processAutowired(Set<Plugin> dependencies) {
-
-        ConfigurationBuilder builder = new ConfigurationBuilder();
-
-        ClassLoader[] classLoaders = getClassLoaders(dependencies, ClassLoader.getSystemClassLoader(),
-                ClasspathHelper.contextClassLoader(), ClasspathHelper.staticClassLoader()
-        );
-
-        List<URL> urls = new ArrayList<>();
-
-        for (Plugin dependency : dependencies) {
-            urls.addAll(ClasspathHelper.forPackage(dependency.getClass().getPackage().getName(), classLoaders));
-        }
-
-        builder.addUrls(urls);
-        builder.addScanners(TypesAnnotated, FieldsAnnotated, SubTypes);
-
-        Reflections reflections = new Reflections(builder);
-
-        processAutowired(reflections);
-    }
-
-    @SneakyThrows
-    public void processAutowired(Reflections reflections) {
-
-        for (Field field : reflections.get(FieldsAnnotated.with(Autowired.class).as(Field.class))) {
-
-            field.setAccessible(true);
-
-            if (SimpleJSONConfig.INSTANCE.isEnableDebug()) {
-                CustomLogger.log("Autowiring config class to field : " +
-                        field.getDeclaringClass().getTypeName() +
-                        "." +
-                        field.getName());
-            }
-
-            Class<?> type = field.getType();
-
-            if (isConfig(type) && isStatic(field.getModifiers()) && field.get(null) == null) {
-
-                Config config = Config.getConfig((Class<? extends Config>) type);
-                field.set(null, config);
-            }
-            if (isStored(type) && isStatic(field.getModifiers()) && field.get(null) == null) {
-
-                Service service = Service.getService((Class<? extends Identifiable>) type);
-                field.set(null, service);
-            }
-
-        }
-    }
-
-    public boolean isConfig(@NotNull Class<?> clazz) {
-
-        return clazz.getSuperclass() == Config.class;
-    }
-
-    public boolean isStored(@NotNull Class<?> clazz) {
-
-        return Identifiable.class.isAssignableFrom(clazz);
-    }
-
-    private void initConfig(@NotNull Config config,
-                            @NotNull File configFile,
-                            @NotNull Configuration annotation,
-                            boolean runValidation
-    ) {
-
-        config.configFile = configFile;
-
-        Serializer serializer = Serializer.getInst();
-        if (!configFile.exists()) {
-
-            try {
-                configFile.mkdirs();
-                configFile.createNewFile();
-                serializer.saveConfig(config, configFile, Config.getType(), StandardCharsets.UTF_8);
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                return;
-            }
-
+        if (!annotation.enableConfigAutoUpdates()) {
+          CustomLogger.warning(exception.getMessage());
+          config.reload();
         } else {
-
-            if (runValidation) {
-                serializer.toBuilder().registerTypeHierarchyAdapter(Config.class, new FieldValidator()).build();
-            }
-
-            try {
-                config.reload();
-            } catch (ConfigDeprecatedException exception) {
-                serializer.toBuilder().unregisterTypeHierarchyAdapter(Config.class, FieldValidator.class).build();
-
-                if (!annotation.enableConfigAutoUpdates()) {
-                    CustomLogger.warning(exception.getMessage());
-                    config.reload();
-                } else {
-                    handleOutdatedConfigUpdate(config, configFile, annotation, exception);
-                    return;
-                }
-
-            } catch (UnsupportedOperationException ignored) {
-                serializer.toBuilder().unregisterTypeHierarchyAdapter(Config.class, FieldValidator.class).build();
-                config.reload();
-            } catch (Exception exception) {
-                CustomLogger.warning(config.getClass().getName() + ": Config file is corrupted");
-                exception.printStackTrace();
-                return;
-            }
-
-
+          handleOutdatedConfigUpdate(config, configFile, annotation, exception);
+          return;
         }
 
-        ConfigContainer.SINGLETONS.put(config.getClass(), config);
+      } catch (UnsupportedOperationException ignored) {
+        serializer.toBuilder()
+            .unregisterTypeHierarchyAdapter(Config.class, FieldValidator.class)
+            .build();
+        config.reload();
+      } catch (Exception exception) {
+        CustomLogger.warning(config.getClass().getName() + ": Config file is corrupted");
+        exception.printStackTrace();
+        return;
+      }
     }
 
-    @SneakyThrows
-    private void handleOutdatedConfigUpdate(@NotNull Config config,
-                                            @NotNull File configFile,
-                                            @NotNull Configuration annotation,
-                                            ConfigDeprecatedException exception
-    ) {
+    ConfigContainer.SINGLETONS.put(config.getClass(), config);
+  }
 
-        JsonObject sourceJson = exception.getSourceJson().getAsJsonObject();
-        exception.getRedundantFields().forEach(sourceJson::remove);
+  @SneakyThrows
+  private void handleOutdatedConfigUpdate(
+      @NotNull Config config,
+      @NotNull File configFile,
+      @NotNull Configuration annotation,
+      ConfigDeprecatedException exception) {
 
-        Class<? extends @NotNull Config> configClass = config.getClass();
+    JsonObject sourceJson = exception.getSourceJson().getAsJsonObject();
+    exception.getRedundantFields().forEach(sourceJson::remove);
 
-        List<String> missingFields = exception.getMissingFields();
+    Class<? extends @NotNull Config> configClass = config.getClass();
 
-        Serializer serializer = Serializer.getInst();
-        for (Field declaredField : configClass.getDeclaredFields()) {
+    List<String> missingFields = exception.getMissingFields();
 
-            declaredField.setAccessible(true);
-            if (!missingFields.contains(declaredField.getName())) {
-                continue;
-            }
+    Serializer serializer = Serializer.getInst();
+    for (Field declaredField : configClass.getDeclaredFields()) {
 
-            Object fieldValue = declaredField.get(config);
-            JsonElement jsonElement = serializer.getGson().toJsonTree(fieldValue);
-            sourceJson.add(declaredField.getName(), jsonElement);
+      declaredField.setAccessible(true);
+      if (!missingFields.contains(declaredField.getName())) {
+        continue;
+      }
 
-        }
-
-        Config mergedConfig = serializer.getGson().fromJson(sourceJson, configClass);
-
-        Field configFileField = mergedConfig.getClass().getSuperclass().getDeclaredField("configFile");
-        configFileField.setAccessible(true);
-        configFileField.set(mergedConfig, configFile);
-
-        mergedConfig.save();
-        initConfig(config, configFile, annotation, false);
-        CustomLogger.log(String.format(
-                "Config \"%s\" has been updated! %nMissing fields added: %s %nRedundant fields removed: %s",
-                configFile.getName(), exception.getMissingFields(), exception.getRedundantFields()
-        ));
+      Object fieldValue = declaredField.get(config);
+      JsonElement jsonElement = serializer.getGson().toJsonTree(fieldValue);
+      sourceJson.add(declaredField.getName(), jsonElement);
     }
 
-    private Reflections buildReflections(String packageName, ClassLoader[] classLoaders) {
+    Config mergedConfig = serializer.getGson().fromJson(sourceJson, configClass);
 
-        ConfigurationBuilder builder = new ConfigurationBuilder();
+    Field configFileField = mergedConfig.getClass().getSuperclass().getDeclaredField("configFile");
+    configFileField.setAccessible(true);
+    configFileField.set(mergedConfig, configFile);
 
-        builder.addUrls(ClasspathHelper.forPackage(packageName, classLoaders));
+    mergedConfig.save();
+    initConfig(config, configFile, annotation, false);
+    CustomLogger.log(
+        String.format(
+            "Config \"%s\" has been updated! %nMissing fields added: %s %nRedundant fields removed: %s",
+            configFile.getName(), exception.getMissingFields(), exception.getRedundantFields()));
+  }
 
-        builder.addScanners(TypesAnnotated, FieldsAnnotated, SubTypes);
+  private Reflections buildReflections(String packageName, ClassLoader[] classLoaders) {
 
-        return new Reflections(builder);
-    }
+    ConfigurationBuilder builder = new ConfigurationBuilder();
+
+    builder.addUrls(ClasspathHelper.forPackage(packageName, classLoaders));
+
+    builder.addScanners(TypesAnnotated, FieldsAnnotated, SubTypes);
+
+    return new Reflections(builder);
+  }
 }

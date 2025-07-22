@@ -1,11 +1,10 @@
 package com.twodevsstudio.simplejsonconfig.def.adapters;
 
 import com.google.gson.*;
+import java.lang.reflect.Type;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
-
-import java.lang.reflect.Type;
 
 public class WorldAdapter implements JsonSerializer, JsonDeserializer {
 

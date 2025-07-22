@@ -1,9 +1,8 @@
 package com.twodevsstudio.simplejsonconfig.def.adapters;
 
 import com.google.gson.*;
-import org.jetbrains.annotations.NotNull;
-
 import java.lang.reflect.Type;
+import org.jetbrains.annotations.NotNull;
 
 public class InterfaceAdapter implements JsonSerializer, JsonDeserializer {
 

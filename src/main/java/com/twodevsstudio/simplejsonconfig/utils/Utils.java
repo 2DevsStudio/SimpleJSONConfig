@@ -1,11 +1,10 @@
 package com.twodevsstudio.simplejsonconfig.utils;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @UtilityClass
 public class Utils {

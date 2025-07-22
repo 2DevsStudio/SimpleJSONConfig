@@ -1,12 +1,11 @@
 package com.twodevsstudio.simplejsonconfig.data.cache;
 
-import lombok.Data;
-import org.apache.commons.collections4.MapIterator;
-import org.apache.commons.collections4.map.LRUMap;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
+import lombok.Data;
+import org.apache.commons.collections4.MapIterator;
+import org.apache.commons.collections4.map.LRUMap;
 
 @Data
 public class InMemoryCache<K, V> {

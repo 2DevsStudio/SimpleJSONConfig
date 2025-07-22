@@ -7,5 +7,5 @@ import java.lang.annotation.*;
 @Inherited
 public @interface Comment {
 
-    String value();
+  String value();
 }

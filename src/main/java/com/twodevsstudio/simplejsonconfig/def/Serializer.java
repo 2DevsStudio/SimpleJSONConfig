@@ -10,6 +10,14 @@ import com.twodevsstudio.simplejsonconfig.api.CommentProcessor;
 import com.twodevsstudio.simplejsonconfig.def.adapters.*;
 import com.twodevsstudio.simplejsonconfig.def.strategies.SuperclassExclusionStrategy;
 import com.twodevsstudio.simplejsonconfig.interfaces.PostProcessable;
+import java.io.*;
+import java.lang.ref.Reference;
+import java.nio.charset.Charset;
+import java.nio.charset.MalformedInputException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,15 +29,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.Yaml;
-
-import java.io.*;
-import java.lang.ref.Reference;
-import java.nio.charset.Charset;
-import java.nio.charset.MalformedInputException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.time.temporal.ChronoUnit;
-import java.util.LinkedHashMap;
 
 @Getter
 public class Serializer {

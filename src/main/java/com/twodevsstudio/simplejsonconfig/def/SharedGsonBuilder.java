@@ -3,14 +3,13 @@ package com.twodevsstudio.simplejsonconfig.def;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import lombok.RequiredArgsConstructor;
-
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public final class SharedGsonBuilder {

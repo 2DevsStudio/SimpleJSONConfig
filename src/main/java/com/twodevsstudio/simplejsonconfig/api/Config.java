@@ -3,15 +3,14 @@ package com.twodevsstudio.simplejsonconfig.api;
 import com.twodevsstudio.simplejsonconfig.def.Serializer;
 import com.twodevsstudio.simplejsonconfig.def.StoreType;
 import com.twodevsstudio.simplejsonconfig.exceptions.ConfigNotFoundException;
-import lombok.Getter;
-import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 
 @Getter
 public abstract class Config {

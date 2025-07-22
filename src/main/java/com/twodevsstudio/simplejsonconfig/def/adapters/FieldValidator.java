@@ -8,7 +8,6 @@ import com.google.gson.reflect.TypeToken;
 import com.twodevsstudio.simplejsonconfig.api.Config;
 import com.twodevsstudio.simplejsonconfig.exceptions.ConfigDeprecatedException;
 import com.twodevsstudio.simplejsonconfig.interfaces.Configuration;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;

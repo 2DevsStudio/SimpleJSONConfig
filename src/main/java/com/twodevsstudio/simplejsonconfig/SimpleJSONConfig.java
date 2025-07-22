@@ -5,15 +5,14 @@ import com.twodevsstudio.simplejsonconfig.api.Config;
 import com.twodevsstudio.simplejsonconfig.def.StoreType;
 import com.twodevsstudio.simplejsonconfig.exceptions.InstanceOverrideException;
 import com.twodevsstudio.simplejsonconfig.utils.CustomLogger;
-import lombok.Getter;
-import lombok.Setter;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public enum SimpleJSONConfig {
     INSTANCE;

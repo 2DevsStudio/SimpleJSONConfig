@@ -1,8 +1,6 @@
 package com.twodevsstudio.simplejsonconfig.api;
 
 import com.twodevsstudio.simplejsonconfig.interfaces.Comment;
-import lombok.SneakyThrows;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +9,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import lombok.SneakyThrows;
 
 public class CommentProcessor {
     private static final String COMMENT_PREFIX = "//";

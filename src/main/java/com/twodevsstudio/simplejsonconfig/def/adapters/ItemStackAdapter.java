@@ -4,6 +4,8 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
 import com.twodevsstudio.simplejsonconfig.utils.MetaSerializationUtils;
 import com.twodevsstudio.simplejsonconfig.utils.Utils;
+import java.lang.reflect.Type;
+import java.util.*;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.NamespacedKey;
@@ -18,9 +20,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
-
-import java.lang.reflect.Type;
-import java.util.*;
 
 public class ItemStackAdapter implements JsonSerializer<ItemStack>, JsonDeserializer<ItemStack> {
 

@@ -1,8 +1,7 @@
 package com.twodevsstudio.simplejsonconfig.interfaces;
 
-import lombok.SneakyThrows;
-
 import java.lang.reflect.Field;
+import lombok.SneakyThrows;
 
 public interface PostProcessable {
 
