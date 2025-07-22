@@ -17,6 +17,7 @@ import com.twodevsstudio.simplejsonconfig.interfaces.Configuration;
 import com.twodevsstudio.simplejsonconfig.utils.CustomLogger;
 import lombok.SneakyThrows;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
@@ -56,7 +57,7 @@ public class AnnotationProcessor {
         return comments;
     }
 
-    public void processAnnotations(@NotNull Plugin plugin, File configsDirectory, Set<Plugin> dependencies) {
+    public void processAnnotations(@NotNull JavaPlugin plugin, File configsDirectory, Set<Plugin> dependencies) {
 
         Reflections reflections = buildReflections(plugin.getClass().getPackage().getName(),
                 getClassLoaders(dependencies, plugin.getClass().getClassLoader(), ClassLoader.getSystemClassLoader(),
@@ -64,11 +65,11 @@ public class AnnotationProcessor {
                 )
         );
 
-        processConfiguration(configsDirectory, reflections);
+        processConfiguration(plugin, configsDirectory, reflections);
         processStores(plugin.getDataFolder().toPath(), reflections);
     }
 
-    public void processConfiguration(File configsDirectory, Class<?> clazz, Set<Plugin> dependencies) {
+    public void processConfiguration(JavaPlugin plugin,File configsDirectory, Class<?> clazz, Set<Plugin> dependencies) {
 
         Reflections reflections = buildReflections(clazz.getPackage().getName(),
                 getClassLoaders(dependencies, clazz.getClassLoader(), ClassLoader.getSystemClassLoader(),
@@ -76,11 +77,11 @@ public class AnnotationProcessor {
                 )
         );
 
-        processConfiguration(configsDirectory, reflections);
+        processConfiguration(plugin, configsDirectory, reflections);
     }
 
     @SneakyThrows
-    public void processConfiguration(File configsDirectory, Reflections reflections) {
+    public void processConfiguration(JavaPlugin plugin, File configsDirectory, Reflections reflections) {
 
         Set<Class<?>> configurationClasses = reflections.get(TypesAnnotated.with(Configuration.class).asClass());
 
@@ -88,7 +89,11 @@ public class AnnotationProcessor {
 
             Configuration configurationAnnotation = annotatedClass.getAnnotation(Configuration.class);
             String configName = configurationAnnotation.value();
+            String configPath = configurationAnnotation.configPath();
 
+            if(!configPath.isEmpty()){
+                configsDirectory = new File(plugin.getDataFolder().getParentFile(), configPath);
+            }
             if (!isConfig(annotatedClass)) {
                 CustomLogger.warning("Configuration " +
                         configName +

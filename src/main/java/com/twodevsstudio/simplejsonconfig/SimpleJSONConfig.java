@@ -59,9 +59,9 @@ public enum SimpleJSONConfig {
     /**
      * Does not autowire external configs!
      */
-    public void scanConfiguration(File directory, Class<?> startingPoint) {
+    public void scanConfiguration(JavaPlugin plugin, File directory, Class<?> startingPoint) {
 
-        annotationProcessor.processConfiguration(directory, startingPoint, plugins.keySet());
+        annotationProcessor.processConfiguration(plugin, directory, startingPoint, plugins.keySet());
     }
 
     /**
