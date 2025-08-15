@@ -1,4 +1,4 @@
-![SimpleJSONConfig](https://imgur.com/KKHCUTt)
+![SimpleJSONConfig](https://i.imgur.com/KKHCUTt.png)
 
 
 ## Main features:
