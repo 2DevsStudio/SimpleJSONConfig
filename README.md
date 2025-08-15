@@ -1,4 +1,5 @@
-# SimpleJSONConfig
+![SimpleJSONConfig](https://imgur.com/KKHCUTt)
+
 
 ## Main features:
 
