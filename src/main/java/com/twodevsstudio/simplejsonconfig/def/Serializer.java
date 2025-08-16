@@ -10,6 +10,7 @@ import com.twodevsstudio.simplejsonconfig.api.CommentProcessor;
 import com.twodevsstudio.simplejsonconfig.def.adapters.*;
 import com.twodevsstudio.simplejsonconfig.def.strategies.SuperclassExclusionStrategy;
 import com.twodevsstudio.simplejsonconfig.interfaces.PostProcessable;
+import com.twodevsstudio.simplejsonconfig.utils.KyoriDetectionUtils;
 import java.io.*;
 import java.lang.ref.Reference;
 import java.nio.charset.Charset;
@@ -64,7 +65,25 @@ public class Serializer {
                 .addDeserializationExclusionStrategy(new SuperclassExclusionStrategy())
                 .addSerializationExclusionStrategy(new SuperclassExclusionStrategy());
 
+        // Register Kyori Adventure Component adapter if available
+        registerKyoriAdapterIfAvailable();
+
         this.jsonBuilder.build();
+    }
+
+    /**
+     * Register Kyori Adventure Component adapter if Kyori is available on the classpath
+     */
+    private void registerKyoriAdapterIfAvailable() {
+        if (KyoriDetectionUtils.isKyoriAvailable()) {
+            try {
+                Class<?> componentClass = Class.forName("net.kyori.adventure.text.Component");
+                jsonBuilder.registerTypeHierarchyAdapter(componentClass, new ComponentAdapter());
+            } catch (ClassNotFoundException e) {
+                // This should not happen if KyoriDetectionUtils works correctly, but just in case
+                // we silently ignore it to not break the initialization
+            }
+        }
     }
 
     /**
