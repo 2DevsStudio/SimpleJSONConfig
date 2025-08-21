@@ -1,4 +1,4 @@
-name: SimpleJsonConfig
+name: SimpleJSONConfig
 main: com.twodevsstudio.simplejsonconfig.Main
 version: 1.4.2
 author: 2devsstudio
