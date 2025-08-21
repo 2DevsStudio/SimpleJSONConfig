@@ -17,6 +17,7 @@ import java.nio.charset.MalformedInputException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.temporal.ChronoUnit;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -63,6 +64,7 @@ public class Serializer {
         .registerTypeHierarchyAdapter(World.class, new WorldAdapter())
         .registerTypeHierarchyAdapter(Reference.class, new ReferenceAdapter())
         .registerTypeAdapter(BlockState.class, new InterfaceAdapter())
+        .registerTypeAdapter(Instant.class, new InstantAdapter())
         .addDeserializationExclusionStrategy(new SuperclassExclusionStrategy())
         .addSerializationExclusionStrategy(new SuperclassExclusionStrategy());
 
