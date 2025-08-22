@@ -21,7 +21,20 @@ public final class SharedGsonBuilder {
     private final List<ExclusionStrategy> deserializationExclusionStrategies = new ArrayList<>();
     private final List<ExclusionStrategy> serializationExclusionStrategies = new ArrayList<>();
 
-    public SharedGsonBuilder registerTypeHierarchyAdapter(Class<?> baseType, Object typeAdapter) {
+  private boolean complexMapKeySerialization = false;
+
+  public SharedGsonBuilder enableComplexMapKeySerialization() {
+    this.complexMapKeySerialization = true;
+    return this;
+  }
+
+  public SharedGsonBuilder disableComplexMapKeySerialization() {
+    this.complexMapKeySerialization = false;
+    return this;
+  }
+
+
+  public SharedGsonBuilder registerTypeHierarchyAdapter(Class<?> baseType, Object typeAdapter) {
 
         typeHierarchyAdapters.putIfAbsent(baseType, new ArrayList<>());
         List<Object> adapters = typeHierarchyAdapters.get(baseType);
@@ -107,6 +120,9 @@ public final class SharedGsonBuilder {
                 .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC)
                 .serializeNulls();
 
+        if(this.complexMapKeySerialization) {
+          gsonBuilder.enableComplexMapKeySerialization();
+        }
         for (Map.Entry<Class<?>, List<Object>> typeHierarchyAdapterEntry : typeHierarchyAdapters.entrySet()) {
             Class<?> type = typeHierarchyAdapterEntry.getKey();
             List<Object> adapters = typeHierarchyAdapterEntry.getValue();
