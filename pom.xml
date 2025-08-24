@@ -9,13 +9,6 @@
     <version>1.4.3</version>
     <packaging>jar</packaging>
 
-    <distributionManagement>
-        <repository>
-            <id>com.2devsstudio</id>
-            <url>https://repo.2devsstudio.com/latest</url>
-        </repository>
-    </distributionManagement>
-
     <name>SimpleJSONConfig</name>
 
     <description>It's Simplified JSON configuration library for spigot developers</description>
